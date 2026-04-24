@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin System Terminal | TSSR</title>
+    <style>
+        :root {
+            --matrix-green: #00ff41;
+            --dark-bg: #0a0a0a;
+            --output-gray: #aaaaaa;
+        }
+
+        body {
+            background-color: #000;
+            color: var(--matrix-green);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 0;
+            padding: 25px;
+            line-height: 1.5;
+        }
+
+        .terminal-window {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .header-info { 
+            color: #444; 
+            font-size: 0.85rem; 
+            margin-bottom: 25px; 
+            border-left: 3px solid #222;
+            padding-left: 15px;
+        }
+
+        .line { margin-bottom: 20px; display: none; }
+        .prompt { color: #fff; font-weight: bold; }
+        .command { color: var(--matrix-green); }
+        .output { color: var(--output-gray); margin-left: 20px; margin-top: 5px; white-space: pre-wrap; border-left: 1px solid #1a1a1a; padding-left: 15px; }
+        
+        .cursor {
+            display: inline-block;
+            width: 9px;
+            height: 17px;
+            background: var(--matrix-green);
+            animation: blink 0.8s infinite;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        a { color: var(--matrix-green); text-decoration: none; font-weight: bold; }
+        a:hover { background: var(--matrix-green); color: #000; }
+
+        .tag {
+            color: #000;
+            background: #008800;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            margin-right: 5px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="terminal-window" id="terminal">
+    <div class="header-info">
+        DEBIAN GNU/LINUX 12 (BOOKWORM) - KERNEL 6.1.0-VIRT<br>
+        UPTIME: 142 DAYS, 14:22 // LOAD AVG: 0.05, 0.02, 0.01<br>
+        AUTHENTICATED AS: TSSR_OPERATOR
+    </div>
+
+    <div class="line" id="line1">
+        <span class="prompt">tssr@infra:~$</span> <span class="command" id="type1"></span>
+        <div class="output" id="out1">
+<strong>[PROFIL]</strong> Technicien Supérieur Système et Réseau
+<strong>[DOMAINES]</strong> Administration Windows/Linux, Virtualisation, Scripting
+<strong>[CERTIFS]</strong> CCNA / Microsoft AZ-104 (en cours)
+        </div>
+    </div>
+
+    <div class="line" id="line2">
+        <span class="prompt">tssr@infra:~$</span> <span class="command" id="type2"></span>
+        <div class="output" id="out2">
+<span class="tag">Linux</span> Debian, Ubuntu Server, Rocky Linux
+<span class="tag">Windows</span> Active Directory, GPO, PowerShell
+<span class="tag">Réseau</span> VLANs, VPN, Firewalling (PfSense/Fortigate)
+<span class="tag">Cloud</span> Docker, Proxmox, VMware vSphere
+        </div>
+    </div>
+
+    <div class="line" id="line3">
+        <span class="prompt">tssr@infra:~$</span> <span class="command" id="type3"></span>
+        <div class="output" id="out3">
+- <a href="#">AutoBackup-Linux.sh</a> (Bash - Automatisation sauvegardes)
+- <a href="#">AD-UserCreation.ps1</a> (PowerShell - Gestion d'utilisateurs)
+- <a href="#">Docker-Compose-Stack/</a> (Ansible - Déploiement auto)
+        </div>
+    </div>
+
+    <div class="line" id="active-line" style="display: block;">
+        <span class="prompt">tssr@infra:~$</span> <span id="current-typing"></span><span class="cursor"></span>
+    </div>
+</div>
+
+<script>
+    const sequence = [
+        { text: "cat /etc/profile/about.md", lineId: "line1", outputId: "out1" },
+        { text: "systemctl status stack-technique", lineId: "line2", outputId: "out2" },
+        { text: "ls -la /home/scripts/automation", lineId: "line3", outputId: "out3" }
+    ];
+
+    let step = 0;
+
+    function typeEffect(elementId, text, callback) {
+        let i = 0;
+        const container = document.getElementById(elementId);
+        container.innerHTML = "";
+        
+        const interval = setInterval(() => {
+            container.innerHTML += text.charAt(i);
+            i++;
+            if (i >= text.length) {
+                clearInterval(interval);
+                setTimeout(callback, 600);
+            }
+        }, 50); 
+    }
+
+    function runSequence() {
+        if (step < sequence.length) {
+            const current = sequence[step];
+            typeEffect("current-typing", current.text, () => {
+                document.getElementById(current.lineId).style.display = "block";
+                document.getElementById("type" + (step + 1)).innerHTML = current.text;
+                document.getElementById("current-typing").innerHTML = "";
+                step++;
+                setTimeout(runSequence, 400);
+            });
+        }
+    }
+
+    window.onload = () => setTimeout(runSequence, 800);
+</script>
+
+</body>
+</html>
