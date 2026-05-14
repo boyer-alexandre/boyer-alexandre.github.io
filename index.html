@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horaires Ambulancier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input[type="time"], input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .history-item {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .history-date {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .history-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .delete-btn {
+            background: #ff4757;
+            padding: 8px 15px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .export-btn {
+            background: #2ecc71;
+            margin-top: 10px;
+        }
+
+        .preview-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview-label {
+            font-size: 12px;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .preview-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📋 Mes Horaires</h1>
+            
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="date" required>
+            </div>
+            
+            <div class="form-group">
+                <label>🚑 Heure de début</label>
+                <input type="time" id="startWork" required onchange="calculatePreview()">
+            </div>
+            
+            <div class="form-group">
+                <label>🏁 Heure de fin</label>
+                <input type="time" id="endWork" required onchange="calculatePreview()">
+            </div>
+
+            <div class="preview-box" id="previewBox" style="display: none;">
+                <div class="preview-label">Durée totale</div>
+                <div class="preview-value" id="previewHours">0h00</div>
+            </div>
+            
+            <button onclick="saveEntry()">Enregistrer</button>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-label">Aujourd'hui</div>
+                    <div class="stat-value" id="todayHours">0h00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Cette semaine</div>
+                    <div class="stat-value" id="weekHours">0h00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h1>📅 Historique</h1>
+            <button class="export-btn" onclick="exportData()">💾 Exporter les données</button>
+            <div id="history" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialiser la date du jour
+        document.getElementById('date').valueAsDate = new Date();
+        
+        function calculatePreview() {
+            const startWork = document.getElementById('startWork').value;
+            const endWork = document.getElementById('endWork').value;
+            
+            if (startWork && endWork) {
+                const totalMinutes = calculateWorkMinutes(startWork, endWork);
+                document.getElementById('previewHours').textContent = minutesToDisplay(totalMinutes);
+                document.getElementById('previewBox').style.display = 'block';
+            } else {
+                document.getElementById('previewBox').style.display = 'none';
+            }
+        }
+        
+        function saveEntry() {
+            const date = document.getElementById('date').value;
+            const startWork = document.getElementById('startWork').value;
+            const endWork = document.getElementById('endWork').value;
+            
+            if (!date || !startWork || !endWork) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+            
+            const totalMinutes = calculateWorkMinutes(startWork, endWork);
+            
+            if (totalMinutes < 0) {
+                alert('⚠️ L\'heure de fin doit être après l\'heure de début');
+                return;
+            }
+            
+            const entry = {
+                date,
+                startWork,
+                endWork,
+                totalMinutes
+            };
+            
+            let entries = JSON.parse(localStorage.getItem('workEntries') || '[]');
+            
+            // Supprimer l'entrée existante pour cette date si elle existe
+            entries = entries.filter(e => e.date !== date);
+            
+            entries.push(entry);
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            localStorage.setItem('workEntries', JSON.stringify(entries));
+            
+            // Réinitialiser le formulaire
+            document.getElementById('startWork').value = '';
+            document.getElementById('endWork').value = '';
+            document.getElementById('previewBox').style.display = 'none';
+            
+            displayHistory();
+            updateStats();
+            
+            alert('✅ Horaires enregistrés !');
+        }
+        
+        function calculateWorkMinutes(startWork, endWork) {
+            const startMinutes = timeToMinutes(startWork);
+            const endMinutes = timeToMinutes(endWork);
+            
+            // Simple : heure de fin - heure de début
+            return endMinutes - startMinutes;
+        }
+        
+        function timeToMinutes(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+        
+        function minutesToDisplay(minutes) {
+            if (minutes < 0) return '0h00';
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours}h${mins.toString().padStart(2, '0')}`;
+        }
+        
+        function displayHistory() {
+            const entries = JSON.parse(localStorage.getItem('workEntries') || '[]');
+            const historyDiv = document.getElementById('history');
+            
+            if (entries.length === 0) {
+                historyDiv.innerHTML = '<p style="color: #999; text-align: center;">Aucun horaire enregistré</p>';
+                return;
+            }
+            
+            historyDiv.innerHTML = entries.map((entry, index) => `
+                <div class="history-item">
+                    <div class="history-date">${formatDate(entry.date)}</div>
+                    <div class="history-details">
+                        🚑 Début: ${entry.startWork}<br>
+                        🏁 Fin: ${entry.endWork}<br>
+                        <strong>Durée: ${minutesToDisplay(entry.totalMinutes)}</strong>
+                    </div>
+                    <button class="delete-btn" onclick="deleteEntry('${entry.date}')">🗑️ Supprimer</button>
+                </div>
+            `).join('');
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('fr-FR', options);
+        }
+        
+        function deleteEntry(date) {
+            if (confirm('Supprimer cet horaire ?')) {
+                let entries = JSON.parse(localStorage.getItem('workEntries') || '[]');
+                entries = entries.filter(e => e.date !== date);
+                localStorage.setItem('workEntries', JSON.stringify(entries));
+                displayHistory();
+                updateStats();
+            }
+        }
+        
+        function updateStats() {
+            const entries = JSON.parse(localStorage.getItem('workEntries') || '[]');
+            const today = document.getElementById('date').value;
+            
+            // Heures du jour
+            const todayEntry = entries.find(e => e.date === today);
+            document.getElementById('todayHours').textContent = 
+                todayEntry ? minutesToDisplay(todayEntry.totalMinutes) : '0h00';
+            
+            // Heures de la semaine (du lundi à aujourd'hui)
+            const weekStart = getMonday(new Date(today));
+            const weekEntries = entries.filter(e => {
+                const entryDate = new Date(e.date + 'T00:00:00');
+                return entryDate >= weekStart;
+            });
+            
+            const weekTotal = weekEntries.reduce((sum, e) => sum + e.totalMinutes, 0);
+            document.getElementById('weekHours').textContent = minutesToDisplay(weekTotal);
+        }
+        
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+        
+        function exportData() {
+            const entries = JSON.parse(localStorage.getItem('workEntries') || '[]');
+            
+            if (entries.length === 0) {
+                alert('Aucune donnée à exporter');
+                return;
+            }
+            
+            let csv = 'Date,Heure début,Heure fin,Durée totale\n';
+            entries.forEach(e => {
+                csv += `${e.date},${e.startWork},${e.endWork},${minutesToDisplay(e.totalMinutes)}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `horaires-ambulancier-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Charger l'historique au démarrage
+        displayHistory();
+        updateStats();
+    </script>
+</body>
+</html>
