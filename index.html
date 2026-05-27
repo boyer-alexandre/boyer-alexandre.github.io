@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Suivi des Heures – Ambulancier</title>
+  <style>
+    :root {
+      --primary: #1a6fa8;
+      --primary-dark: #145a8a;
+      --secondary: #e8f4fd;
+      --accent: #e74c3c;
+      --success: #27ae60;
+      --warning: #f39c12;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #2c3e50;
+      --border: #d0dce8;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+
+    header .logo { font-size: 2.2rem; }
+    header h1 { font-size: 1.5rem; font-weight: 700; }
+    header p { font-size: 0.85rem; opacity: 0.85; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ---- RÈGLEMENTATION ---- */
+    .reglementation {
+      background: var(--secondary);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .reglementation h3 { color: var(--primary); margin-bottom: 8px; font-size: 1rem; }
+    .reglementation ul { padding-left: 18px; }
+    .reglementation li { margin-bottom: 4px; }
+    .reglementation strong { color: var(--primary-dark); }
+
+    /* ---- QUINZAINE SELECTOR ---- */
+    .quinzaine-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      background: var(--card);
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .quinzaine-bar label { font-weight: 600; color: var(--primary); white-space: nowrap; }
+    .quinzaine-bar input[type="date"],
+    .quinzaine-bar select {
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: white;
+    }
+    .quinzaine-bar input[type="date"]:focus,
+    .quinzaine-bar select:focus { outline: none; border-color: var(--primary); }
+
+    /* ---- FORM SAISIE ---- */
+    .form-card {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .form-card h2 {
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--secondary);
+      padding-bottom: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: #555; }
+    .form-group input, .form-group select {
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-danger { background: var(--accent); color: white; }
+    .btn-danger:hover { background: #c0392b; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #219a52; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-warning:hover { background: #d68910; }
+
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+    /* ---- TABLEAU ---- */
+    .table-card {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .table-card h2 {
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-bottom: 14px;
+      border-bottom: 2px solid var(--secondary);
+      padding-bottom: 8px;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead tr { background: var(--primary); color: white; }
+    thead th { padding: 10px 8px; text-align: center; font-weight: 600; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:hover { background: var(--secondary); }
+    tbody td { padding: 9px 8px; text-align: center; }
+    tbody td:first-child { text-align: left; font-weight: 500; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-jour { background: #d5f5e3; color: #1e8449; }
+    .badge-nuit { background: #d6eaf8; color: #1a6fa8; }
+    .badge-permanence { background: #fdebd0; color: #a04000; }
+    .badge-dimanche { background: #f9ebea; color: #922b21; }
+    .badge-ferie { background: #f5eef8; color: #6c3483; }
+
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 3px 6px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .action-btn:hover { background: #fee; }
+
+    /* ---- RÉCAP ---- */
+    .recap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .recap-card {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      text-align: center;
+      border-top: 4px solid var(--primary);
+    }
+    .recap-card.warn { border-top-color: var(--warning); }
+    .recap-card.good { border-top-color: var(--success); }
+    .recap-card.alert { border-top-color: var(--accent); }
+
+    .recap-card .value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+    .recap-card.warn .value { color: var(--warning); }
+    .recap-card.good .value { color: var(--success); }
+    .recap-card.alert .value { color: var(--accent); }
+    .recap-card .label { font-size: 0.78rem; color: #777; margin-top: 4px; }
+    .recap-card .sublabel { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
+
+    /* ---- INFO ABATTEMENT ---- */
+    .abattement-info {
+      background: #fff8e1;
+      border-left: 4px solid var(--warning);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 0.83rem;
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+    .abattement-info h3 { color: #a0700a; margin-bottom: 6px; }
+
+    /* ---- EXPORT ---- */
+    .export-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .export-bar span { font-size: 0.85rem; color: #666; }
+
+    .empty-msg {
+      text-align: center;
+      color: #aaa;
+      padding: 30px;
+      font-style: italic;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.78rem;
+      color: #aaa;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.1rem; }
+      .value { font-size: 1.4rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🚑</div>
+  <div>
+    <h1>Suivi des Heures – Ambulancier</h1>
+    <p>CCN Transport Sanitaire – IDCC 1061 · Accord du 16 juin 2016</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- RÈGLEMENTATION -->
+  <div class="reglementation">
+    <h3>📋 Règlementation applicable (CCN Transport Sanitaire – IDCC 1061)</h3>
+    <ul>
+      <li><strong>Durée légale :</strong> 35h/semaine → seuil des heures supplémentaires à partir de la 36ᵉ heure.</li>
+      <li><strong>Heures supplémentaires :</strong> +25 % entre la 36ᵉ et la 43ᵉ heure · +50 % au-delà de la 43ᵉ heure. Contingent annuel : 130h.</li>
+      <li><strong>Abattement (coefficient d'équivalence – Décret 2009-32) :</strong> Amplitude × <strong>90 %</strong> en service normal · Amplitude × <strong>75 %</strong> (ou <strong>80 %</strong> selon accord 2016) en service de permanence.</li>
+      <li><strong>Amplitude journalière :</strong> 12h max (dérogation à 14h max 1×/semaine en moyenne sur 4 semaines).</li>
+      <li><strong>Travail de nuit :</strong> entre 22h et 5h · majorations spécifiques.</li>
+      <li><strong>Repos quotidien :</strong> 11h min. · Repos hebdomadaire : 35h min. (24h + 11h).</li>
+      <li><strong>Pause repas :</strong> ≥ 30 min non comptée dans le TTE · Pause courte : ≥ 20 min non comptée (cumul max 1h30/jour).</li>
+      <li><strong>Période de référence quinzaine :</strong> 70h sur 14 jours (35h × 2 semaines).</li>
+    </ul>
+  </div>
+
+  <!-- SÉLECTEUR QUINZAINE -->
+  <div class="quinzaine-bar">
+    <label>📅 Quinzaine du</label>
+    <input type="date" id="dateDebut" />
+    <label>au</label>
+    <input type="date" id="dateFin" readonly style="background:#f5f5f5;" />
+    <button class="btn btn-primary" onclick="changerQuinzaine()">Charger</button>
+    <button class="btn btn-warning" onclick="nouvelleQuinzaine()">+ Nouvelle quinzaine</button>
+  </div>
+
+  <!-- ABATTEMENT -->
+  <div class="abattement-info">
+    <h3>⚖️ Mode de calcul de l'abattement appliqué</h3>
+    Le <strong>temps de travail effectif (TTE)</strong> est calculé après application du coefficient d'équivalence sur l'amplitude brute :<br/>
+    • Service normal (jour) : <strong>Amplitude brute × 90%</strong><br/>
+    • Service de permanence : <strong>Amplitude brute × 75%</strong> (ou 80% selon accord d'entreprise 2016)<br/>
+    Les pauses ≥ 20 min (ou ≥ 30 min repas) sont d'abord déduites de l'amplitude avant application du coefficient.
+  </div>
+
+  <!-- FORMULAIRE SAISIE -->
+  <div class="form-card">
+    <h2>✏️ Saisir une journée</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="inputDate" />
+      </div>
+      <div class="form-group">
+        <label>Prise de service</label>
+        <input type="time" id="inputDebut" />
+      </div>
+      <div class="form-group">
+        <label>Fin de service</label>
+        <input type="time" id="inputFin" />
+      </div>
+      <div class="form-group">
+        <label>Pause repas (min)</label>
+        <input type="number" id="inputPauseRepas" value="30" min="0" max="120" />
+      </div>
+      <div class="form-group">
+        <label>Autres pauses (min)</label>
+        <input type="number" id="inputPauseAutres" value="0" min="0" max="90" />
+      </div>
+      <div class="form-group">
+        <label>Type de service</label>
+        <select id="inputType">
+          <option value="jour">Jour (normal)</option>
+          <option value="nuit">Nuit (22h–5h)</option>
+          <option value="permanence">Permanence</option>
+          <option value="dimanche">Dimanche</option>
+          <option value="ferie">Jour férié</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Abattement</label>
+        <select id="inputAbattement">
+          <option value="0.90">90% – Service normal</option>
+          <option value="0.75">75% – Permanence (décret 2009)</option>
+          <option value="0.80">80% – Permanence (accord 2016)</option>
+          <option value="1.00">100% – Aucun</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="inputNote" placeholder="Optionnel..." />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="ajouterJournee()">➕ Ajouter</button>
+      <button class="btn btn-danger" onclick="resetFormulaire()">🔄 Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- RÉCAP -->
+  <div class="recap-grid" id="recapGrid">
+    <div class="recap-card">
+      <div class="value" id="recapAmplitude">0h00</div>
+      <div class="label">Amplitude brute totale</div>
+      <div class="sublabel">sur la quinzaine</div>
+    </div>
+    <div class="recap-card good">
+      <div class="value" id="recapTTE">0h00</div>
+      <div class="label">Temps Travail Effectif (TTE)</div>
+      <div class="sublabel">après abattement</div>
+    </div>
+    <div class="recap-card warn">
+      <div class="value" id="recapHS25">0h00</div>
+      <div class="label">H. Supp. à +25%</div>
+      <div class="sublabel">36ᵉ → 43ᵉ heure</div>
+    </div>
+    <div class="recap-card alert">
+      <div class="value" id="recapHS50">0h00</div>
+      <div class="label">H. Supp. à +50%</div>
+      <div class="sublabel">au-delà de la 43ᵉ heure</div>
+    </div>
+    <div class="recap-card">
+      <div class="value" id="recapJours">0</div>
+      <div class="label">Jours saisis</div>
+      <div class="sublabel">/ 14 jours</div>
+    </div>
+  </div>
+
+  <!-- TABLEAU -->
+  <div class="table-card">
+    <h2>📊 Détail des journées – <span id="titreQuinzaine">–</span></h2>
+    <table id="tableJournees">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Début</th>
+          <th>Fin</th>
+          <th>Amplitude</th>
+          <th>Pause repas</th>
+          <th>Autres pauses</th>
+          <th>Coeff.</th>
+          <th>TTE</th>
+          <th>Type</th>
+          <th>Note</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyJournees">
+        <tr><td colspan="11" class="empty-msg">Aucune journée saisie pour cette quinzaine.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="export-bar">
+    <span>📤 Exporter :</span>
+    <button class="btn btn-success" onclick="exporterCSV()">📊 CSV (Excel)</button>
+    <button class="btn btn-primary" onclick="exporterJSON()">💾 Sauvegarde JSON</button>
+    <button class="btn btn-warning" onclick="importerJSON()">📂 Importer JSON</button>
+    <input type="file" id="fileImport" accept=".json" style="display:none" onchange="lireJSON(event)" />
+  </div>
+
+</div>
+
+<footer>
+  Données stockées localement dans votre navigateur (localStorage) · CCN Transport Sanitaire IDCC 1061 · Accord 16 juin 2016
+</footer>
+
+<script>
+  // ===================== UTILITAIRES =====================
+  const LS_KEY = 'ambulancier_heures_v2';
+
+  function hhmm(minutes) {
+    const neg = minutes < 0;
+    const abs = Math.abs(Math.round(minutes));
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+    return (neg ? '-' : '') + h + 'h' + String(m).padStart(2, '0');
+  }
+
+  function minutesEntreDeux(debut, fin) {
+    const [dh, dm] = debut.split(':').map(Number);
+    let [fh, fm] = fin.split(':').map(Number);
+    let totalMin = (fh * 60 + fm) - (dh * 60 + dm);
+    if (totalMin < 0) totalMin += 24 * 60; // passage minuit
+    return totalMin;
+  }
+
+  function dateLocale(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function addDays(dateStr, n) {
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+
+  // ===================== STOCKAGE =====================
+  function chargerData() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+    catch(e) { return {}; }
+  }
+
+  function sauvegarderData(data) {
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  }
+
+  // ===================== QUINZAINE =====================
+  let quinzaineActuelle = null;
+
+  function getQuinzaineKey(debut) { return 'q_' + debut; }
+
+  function changerQuinzaine() {
+    const debut = document.getElementById('dateDebut').value;
+    if (!debut) { alert('Veuillez sélectionner une date de début.'); return; }
+    const fin = addDays(debut, 13);
+    document.getElementById('dateFin').value = fin;
+    quinzaineActuelle = debut;
+    document.getElementById('titreQuinzaine').textContent =
+      dateLocale(debut) + ' → ' + dateLocale(fin);
+    afficherTableau();
+    calculerRecap();
+  }
+
+  function nouvelleQuinzaine() {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('dateDebut').value = today;
+    changerQuinzaine();
+  }
+
+  // ===================== FORMULAIRE =====================
+  function ajouterJournee() {
+    if (!quinzaineActuelle) { alert('Veuillez d\'abord charger une quinzaine.'); return; }
+
+    const date    = document.getElementById('inputDate').value;
+    const debut   = document.getElementById('inputDebut').value;
+    const fin     = document.getElementById('inputFin').value;
+    const pauseR  = parseInt(document.getElementById('inputPauseRepas').value) || 0;
+    const pauseA  = parseInt(document.getElementById('inputPauseAutres').value) || 0;
+    const type    = document.getElementById('inputType').value;
+    const coeff   = parseFloat(document.getElementById('inputAbattement').value);
+    const note    = document.getElementById('inputNote').value.trim();
+
+    if (!date || !debut || !fin) { alert('Veuillez remplir la date, l\'heure de début et de fin.'); return; }
+
+    // Vérifier que la date est dans la quinzaine
+    const fin_q = addDays(quinzaineActuelle, 13);
+    if (date < quinzaineActuelle || date > fin_q) {
+      alert('⚠️ Cette date n\'est pas dans la quinzaine sélectionnée (' + dateLocale(quinzaineActuelle) + ' → ' + dateLocale(fin_q) + ').');
+      return;
+    }
+
+    const amplitudeBrute = minutesEntreDeux(debut, fin);
+    if (amplitudeBrute <= 0) { alert('L\'heure de fin doit être après l\'heure de début.'); return; }
+
+    // Calcul TTE : (amplitude - pauses exclues) × coeff
+    // Pause repas ≥ 30 min et pause courte ≥ 20 min → exclues du TTE
+    const pauseRepasExcluse = pauseR >= 30 ? pauseR : 0;
+    const pauseAutreExcluse = pauseA >= 20 ? pauseA : 0;
+    const amplitudeNette = amplitudeBrute - pauseRepasExcluse - pauseAutreExcluse;
+    const tte = Math.round(amplitudeNette * coeff);
+
+    const journee = { date, debut, fin, amplitudeBrute, pauseR, pauseA, type, coeff, tte, note, id: Date.now() };
+
+    const data = chargerData();
+    const key  = getQuinzaineKey(quinzaineActuelle);
+    if (!data[key]) data[key] = [];
+    data[key].push(journee);
+    sauvegarderData(data);
+
+    afficherTableau();
+    calculerRecap();
+    resetFormulaire();
+  }
+
+  function supprimerJournee(id) {
+    if (!confirm('Supprimer cette journée ?')) return;
+    const data = chargerData();
+    const key  = getQuinzaineKey(quinzaineActuelle);
+    data[key]  = (data[key] || []).filter(j => j.id !== id);
+    sauvegarderData(data);
+    afficherTableau();
+    calculerRecap();
+  }
+
+  function resetFormulaire() {
+    document.getElementById('inputDate').value = '';
+    document.getElementById('inputDebut').value = '';
+    document.getElementById('inputFin').value = '';
+    document.getElementById('inputPauseRepas').value = 30;
+    document.getElementById('inputPauseAutres').value = 0;
+    document.getElementById('inputType').value = 'jour';
+    document.getElementById('inputAbattement').value = '0.90';
+    document.getElementById('inputNote').value = '';
+  }
+
+  // ===================== TABLEAU =====================
+  const BADGES = {
+    jour:       '<span class="badge badge-jour">Jour</span>',
+    nuit:       '<span class="badge badge-nuit">Nuit</span>',
+    permanence: '<span class="badge badge-permanence">Permanence</span>',
+    dimanche:   '<span class="badge badge-dimanche">Dimanche</span>',
+    ferie:      '<span class="badge badge-ferie">Férié</span>',
+  };
+
+  function afficherTableau() {
+    const tbody = document.getElementById('tbodyJournees');
+    if (!quinzaineActuelle) { tbody.innerHTML = '<tr><td colspan="11" class="empty-msg">Sélectionnez une quinzaine.</td></tr>'; return; }
+
+    const data = chargerData();
+    const key  = getQuinzaineKey(quinzaineActuelle);
+    const jours = (data[key] || []).sort((a, b) => a.date.localeCompare(b.date));
+
+    if (jours.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11" class="empty-msg">Aucune journée saisie pour cette quinzaine.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = jours.map(j => `
+      <tr>
+        <td>${dateLocale(j.date)}</td>
+        <td>${j.debut}</td>
+        <td>${j.fin}</td>
+        <td>${hhmm(j.amplitudeBrute)}</td>
+        <td>${j.pauseR >= 30 ? '✔ ' : '✘ '}${j.pauseR}min</td>
+        <td>${j.pauseA >= 20 ? '✔ ' : '✘ '}${j.pauseA}min</td>
+        <td>${Math.round(j.coeff * 100)}%</td>
+        <td><strong>${hhmm(j.tte)}</strong></td>
+        <td>${BADGES[j.type] || j.type}</td>
+        <td style="font-size:0.78rem;color:#666;">${j.note || '–'}</td>
+        <td><button class="action-btn" onclick="supprimerJournee(${j.id})" title="Supprimer">🗑️</button></td>
+      </tr>
+    `).join('');
+  }
+
+  // ===================== RÉCAP =====================
+  function calculerRecap() {
+    if (!quinzaineActuelle) return;
+    const data = chargerData();
+    const key  = getQuinzaineKey(quinzaineActuelle);
+    const jours = data[key] || [];
+
+    const totalAmplitude = jours.reduce((s, j) => s + j.amplitudeBrute, 0);
+    const totalTTE       = jours.reduce((s, j) => s + j.tte, 0);
+
+    // Seuils sur la quinzaine (35h × 2 = 70h = 4200 min)
+    const seuil_base = 4200;     // 70h
+    const seuil_hs25 = 4200 + (8 * 60 * 2); // 36e→43e h × 2 semaines = 16h supplémentaires à 25%
+    // En pratique sur une quinzaine : TTE normal = 70h. HS25 = jusqu'à 86h. HS50 = au-delà.
+    const hs25_min = Math.max(0, Math.min(totalTTE - seuil_base, (8 * 60 * 2)));
+    const hs50_min = Math.max(0, totalTTE - seuil_base - (8 * 60 * 2));
+
+    document.getElementById('recapAmplitude').textContent = hhmm(totalAmplitude);
+    document.getElementById('recapTTE').textContent       = hhmm(totalTTE);
+    document.getElementById('recapHS25').textContent      = hhmm(hs25_min);
+    document.getElementById('recapHS50').textContent      = hhmm(hs50_min);
+    document.getElementById('recapJours').textContent     = jours.length;
+  }
+
+  // ===================== EXPORT CSV =====================
+  function exporterCSV() {
+    if (!quinzaineActuelle) { alert('Aucune quinzaine sélectionnée.'); return; }
+    const data = chargerData();
+    const key  = getQuinzaineKey(quinzaineActuelle);
+    const jours = (data[key] || []).sort((a, b) => a.date.localeCompare(b.date));
+
+    if (jours.length === 0) { alert('Aucune donnée à exporter.'); return; }
+
+    const fin_q = addDays(quinzaineActuelle, 13);
+    let totalAmplitude = 0, totalTTE = 0;
+
+    const header = ['Date', 'Jour', 'Début', 'Fin', 'Amplitude brute (min)', 'Amplitude brute (h)', 'Pause repas (min)', 'Pause repas exclue', 'Autres pauses (min)', 'Autres pauses exclues', 'Coefficient (%)', 'TTE (min)', 'TTE (h)', 'Type de service', 'Note'];
+    const rows = jours.map(j => {
+      totalAmplitude += j.amplitudeBrute;
+      totalTTE       += j.tte;
+      const d = new Date(j.date + 'T00:00:00');
+      const jourSemaine = d.toLocaleDateString('fr-FR', { weekday: 'long' });
+      const pauseRExcluse = j.pauseR >= 30 ? 'Oui' : 'Non';
+      const pauseAExcluse = j.pauseA >= 20 ? 'Oui' : 'Non';
+      return [
+        j.date.split('-').reverse().join('/'),
+        jourSemaine,
+        j.debut, j.fin,
+        j.amplitudeBrute,
+        (j.amplitudeBrute / 60).toFixed(2).replace('.', ','),
+        j.pauseR, pauseRExcluse,
+        j.pauseA, pauseAExcluse,
+        Math.round(j.coeff * 100),
+        j.tte,
+        (j.tte / 60).toFixed(2).replace('.', ','),
+        j.type, j.note || ''
+      ];
+    });
+
+    const seuil_base = 4200;
+    const hs25_min = Math.max(0, Math.min(totalTTE - seuil_base, 960));
+    const hs50_min = Math.max(0, totalTTE - seuil_base - 960);
+
+    const sep = '\r\n';
+    let csv = '\uFEFF'; // BOM UTF-8 pour Excel
+    csv += `SUIVI DES HEURES AMBULANCIER${sep}`;
+    csv += `Quinzaine du;${quinzaineActuelle.split('-').reverse().join('/')};au;${fin_q.split('-').reverse().join('/')}${sep}`;
+    csv += `CCN Transport Sanitaire - IDCC 1061 - Accord 16 juin 2016${sep}${sep}`;
+    csv += header.join(';') + sep;
+    rows.forEach(r => { csv += r.join(';') + sep; });
+    csv += sep;
+    csv += `RÉCAPITULATIF QUINZAINE${sep}`;
+    csv += `Amplitude brute totale (h);${(totalAmplitude/60).toFixed(2).replace('.',',')}${sep}`;
+    csv += `Temps Travail Effectif TTE (h);${(totalTTE/60).toFixed(2).replace('.',',')}${sep}`;
+    csv += `Heures supplémentaires +25% (h);${(hs25_min/60).toFixed(2).replace('.',',')}${sep}`;
+    csv += `Heures supplémentaires +50% (h);${(hs50_min/60).toFixed(2).replace('.',',')}${sep}`;
+    csv += sep;
+    csv += `Règle: TTE normal = 70h/quinzaine (35h x 2 sem). HS +25% de la 71e a la 86e heure. HS +50% au-dela.${sep}`;
+    csv += `Abattement: Service normal = x90% | Permanence decret 2009 = x75% | Permanence accord 2016 = x80%${sep}`;
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `heures_ambulancier_${quinzaineActuelle}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ===================== EXPORT / IMPORT JSON =====================
+  function exporterJSON() {
+    const data = chargerData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `sauvegarde_heures_ambulancier_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importerJSON() {
+    document.getElementById('fileImport').click();
+  }
+
+  function lireJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (confirm('Fusionner les données importées avec les données existantes ?')) {
+          const existing = chargerData();
+          const merged = Object.assign({}, existing, data);
+          sauvegarderData(merged);
+        } else {
+          sauvegarderData(data);
+        }
+        afficherTableau();
+        calculerRecap();
+        alert('✅ Import réussi !');
+      } catch(err) {
+        alert('❌ Fichier JSON invalide.');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  // ===================== INIT =====================
+  window.onload = function() {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('dateDebut').value = today;
+    document.getElementById('inputDate').value = today;
+    changerQuinzaine();
+  };
+</script>
+
+</body>
+</html>
