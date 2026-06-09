@@ -6,9 +6,7 @@
   <title>🚴 Mon Brief Vélotaf</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Nunito', sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
@@ -16,25 +14,9 @@
       color: #fff;
       padding: 20px;
     }
-
-    header {
-      text-align: center;
-      padding: 30px 0 20px;
-    }
-
-    header h1 {
-      font-size: 2.2rem;
-      font-weight: 900;
-      letter-spacing: 1px;
-      text-shadow: 0 0 20px #a78bfa;
-    }
-
-    header p {
-      font-size: 0.95rem;
-      color: #c4b5fd;
-      margin-top: 6px;
-    }
-
+    header { text-align: center; padding: 30px 0 20px; }
+    header h1 { font-size: 2.2rem; font-weight: 900; text-shadow: 0 0 20px #a78bfa; }
+    header p { font-size: 0.95rem; color: #c4b5fd; margin-top: 6px; }
     #location-bar {
       text-align: center;
       background: rgba(167,139,250,0.15);
@@ -46,175 +28,69 @@
       font-size: 0.9rem;
       color: #e9d5ff;
     }
-
     #location-bar span { font-weight: 700; color: #a78bfa; }
-
     #loading {
-      text-align: center;
-      padding: 60px;
-      font-size: 1.3rem;
-      color: #c4b5fd;
+      text-align: center; padding: 60px;
+      font-size: 1.3rem; color: #c4b5fd;
       animation: pulse 1.5s ease-in-out infinite;
     }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
-
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .cards-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      max-width: 600px;
-      margin: 0 auto;
+      display: flex; flex-direction: column;
+      gap: 16px; max-width: 600px; margin: 0 auto;
     }
-
     .day-card {
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(167,139,250,0.3);
-      border-radius: 20px;
-      padding: 20px 24px;
+      border-radius: 20px; padding: 20px 24px;
       backdrop-filter: blur(10px);
       transition: transform 0.2s, box-shadow 0.2s;
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
-
-    .day-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 30px rgba(167,139,250,0.25);
-    }
-
-    .day-card.today {
-      border: 2px solid #a78bfa;
-      background: rgba(167,139,250,0.12);
-    }
-
+    .day-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(167,139,250,0.25); }
+    .day-card.today { border: 2px solid #a78bfa; background: rgba(167,139,250,0.12); }
     .today-badge {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      background: #a78bfa;
-      color: #1e1b4b;
-      font-weight: 900;
-      font-size: 0.7rem;
-      padding: 3px 10px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      position: absolute; top: 14px; right: 16px;
+      background: #a78bfa; color: #1e1b4b;
+      font-weight: 900; font-size: 0.7rem;
+      padding: 3px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 1px;
     }
-
-    .day-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
+    .day-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
     .day-icon { font-size: 2.4rem; }
-
-    .day-name {
-      font-size: 1.2rem;
-      font-weight: 900;
-      text-transform: capitalize;
-    }
-
-    .day-date {
-      font-size: 0.8rem;
-      color: #a5b4fc;
-      margin-top: 2px;
-    }
-
+    .day-name { font-size: 1.2rem; font-weight: 900; text-transform: capitalize; }
+    .day-date { font-size: 0.8rem; color: #a5b4fc; margin-top: 2px; }
     .day-alert {
-      background: rgba(167,139,250,0.2);
       border-left: 3px solid #a78bfa;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 14px;
-      color: #e9d5ff;
+      border-radius: 8px; padding: 8px 14px;
+      font-size: 0.9rem; font-weight: 700;
+      margin-bottom: 14px; color: #e9d5ff;
     }
-
-    .day-alert.good  { border-color: #34d399; background: rgba(52,211,153,0.1); color: #6ee7b7; }
-    .day-alert.rain  { border-color: #60a5fa; background: rgba(96,165,250,0.1); color: #93c5fd; }
-    .day-alert.wind  { border-color: #fbbf24; background: rgba(251,191,36,0.1); color: #fde68a; }
-    .day-alert.storm { border-color: #f87171; background: rgba(248,113,113,0.1); color: #fca5a5; }
-
-    .day-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .stat {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.88rem;
-      color: #ddd6fe;
-    }
-
+    .day-alert.good  { border-color:#34d399; background:rgba(52,211,153,0.1);  color:#6ee7b7; }
+    .day-alert.rain  { border-color:#60a5fa; background:rgba(96,165,250,0.1);  color:#93c5fd; }
+    .day-alert.wind  { border-color:#fbbf24; background:rgba(251,191,36,0.1);  color:#fde68a; }
+    .day-alert.storm { border-color:#f87171; background:rgba(248,113,113,0.1); color:#fca5a5; }
+    .day-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { display:flex; align-items:center; gap:8px; font-size:0.88rem; color:#ddd6fe; }
     .stat-icon { font-size: 1.1rem; }
-
-    .stat strong { color: #fff; font-weight: 700; }
-
+    .stat strong { color:#fff; font-weight:700; }
     .sun-row {
-      grid-column: 1 / -1;
-      justify-content: center;
-      background: rgba(251,191,36,0.08);
-      border-radius: 10px;
-      padding: 6px 10px;
+      grid-column: 1/-1; justify-content:center;
+      background:rgba(251,191,36,0.08);
+      border-radius:10px; padding:6px 10px;
     }
-
-    .rain-bar-wrap {
-      grid-column: 1 / -1;
-      margin-top: 4px;
-    }
-
-    .rain-bar-label {
-      font-size: 0.75rem;
-      color: #93c5fd;
-      margin-bottom: 4px;
-    }
-
-    .rain-bar-track {
-      background: rgba(96,165,250,0.15);
-      border-radius: 20px;
-      height: 8px;
-      overflow: hidden;
-    }
-
-    .rain-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #60a5fa, #3b82f6);
-      border-radius: 20px;
-      transition: width 0.8s ease;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 40px;
-      padding-bottom: 30px;
-      color: #6b7280;
-      font-size: 0.8rem;
-    }
-
-    footer a { color: #a78bfa; text-decoration: none; }
-
+    .rain-bar-wrap { grid-column: 1/-1; margin-top: 4px; }
+    .rain-bar-label { font-size:0.75rem; color:#93c5fd; margin-bottom:4px; }
+    .rain-bar-track { background:rgba(96,165,250,0.15); border-radius:20px; height:8px; overflow:hidden; }
+    .rain-bar-fill { height:100%; background:linear-gradient(90deg,#60a5fa,#3b82f6); border-radius:20px; }
+    footer { text-align:center; margin-top:40px; padding-bottom:30px; color:#6b7280; font-size:0.8rem; }
+    footer a { color:#a78bfa; text-decoration:none; }
     .error-box {
-      text-align: center;
-      background: rgba(248,113,113,0.15);
-      border: 1px solid #f87171;
-      border-radius: 16px;
-      padding: 30px;
-      max-width: 480px;
-      margin: 40px auto;
-      color: #fca5a5;
+      text-align:center; background:rgba(248,113,113,0.15);
+      border:1px solid #f87171; border-radius:16px;
+      padding:30px; max-width:480px; margin:40px auto; color:#fca5a5;
     }
-
-    .error-box h2 { font-size: 1.4rem; margin-bottom: 10px; }
+    .error-box h2 { font-size:1.4rem; margin-bottom:10px; }
   </style>
 </head>
 <body>
@@ -225,7 +101,6 @@
 </header>
 
 <div id="location-bar">📍 Localisation : <span id="loc-text">en cours…</span></div>
-
 <div id="loading">🚲 Chargement de ta météo vélo…</div>
 <div id="content" style="display:none"></div>
 
@@ -235,41 +110,30 @@
 </footer>
 
 <script>
-  // ⚠️ REMPLACE PAR TA CLÉ API OPENWEATHERMAP (gratuite sur openweathermap.org)
   const API_KEY = 'afd4149bf6f4e90439f88b94a540fdc6';
 
   const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const mois  = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
 
-  function weatherIcon(id, isDay = true) {
+  function weatherIcon(id) {
     if (id >= 200 && id < 300) return '⛈️';
     if (id >= 300 && id < 400) return '🌦️';
     if (id >= 500 && id < 600) return id >= 502 ? '🌧️' : '🌦️';
     if (id >= 600 && id < 700) return '❄️';
     if (id >= 700 && id < 800) return '🌫️';
-    if (id === 800) return isDay ? '☀️' : '🌙';
+    if (id === 800) return '☀️';
     if (id === 801) return '🌤️';
     if (id === 802) return '⛅';
     return '☁️';
   }
 
-  function alertInfo(day) {
-    const rain = day.rain || 0;
-    const wind = day.wind_speed * 3.6;
-    const id   = day.weather[0].id;
-    if (id >= 200 && id < 300) return { cls:'storm', msg:'⚡ Orage prévu — reste chez toi !' };
-    if (rain > 10)              return { cls:'rain',  msg:'🌧️ Grosse pluie — imperméable obligatoire !' };
-    if (rain > 2)               return { cls:'rain',  msg:'🌦️ Pluie légère — couvre-toi !' };
-    if (wind > 50)              return { cls:'wind',  msg:'💨 Vent violent — accroche-toi au guidon !' };
-    if (wind > 30)              return { cls:'wind',  msg:'🌬️ Vent fort — prévoir plus de temps' };
+  function alertInfo(rain, windKmh, weatherId) {
+    if (weatherId >= 200 && weatherId < 300) return { cls:'storm', msg:'⚡ Orage prévu — reste chez toi !' };
+    if (rain > 10)    return { cls:'rain', msg:'🌧️ Grosse pluie — imperméable obligatoire !' };
+    if (rain > 2)     return { cls:'rain', msg:'🌦️ Pluie légère — couvre-toi !' };
+    if (windKmh > 50) return { cls:'wind', msg:'💨 Vent violent — accroche-toi au guidon !' };
+    if (windKmh > 30) return { cls:'wind', msg:'🌬️ Vent fort — prévoir plus de temps' };
     return { cls:'good', msg:'✅ Pas d\'alerte — bon trajet !' };
-  }
-
-  function formatTime(unix, tz) {
-    const d = new Date((unix + tz) * 1000);
-    const h = d.getUTCHours().toString().padStart(2,'0');
-    const m = d.getUTCMinutes().toString().padStart(2,'0');
-    return `${h}h${m}`;
   }
 
   function windDir(deg) {
@@ -277,55 +141,93 @@
     return dirs[Math.round(deg / 45) % 8];
   }
 
-  async function getSunTimes(lat, lon, dateStr) {
-    const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&date=${dateStr}&formatted=0`;
-    const r = await fetch(url);
-    const d = await r.json();
-    if (d.status !== 'OK') return null;
-    const toLocal = (iso) => {
-      const dd = new Date(iso);
-      const h = dd.getHours().toString().padStart(2,'0');
-      const mm = dd.getMinutes().toString().padStart(2,'0');
-      return `${h}h${mm}`;
+  // Regroupe les créneaux 3h par jour
+  function groupByDay(list) {
+    const days = {};
+    list.forEach(item => {
+      const d = new Date(item.dt * 1000);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (!days[key]) days[key] = { slots: [], date: d };
+      days[key].slots.push(item);
+    });
+    return Object.values(days);
+  }
+
+  function summarizeDay(slots) {
+    const temps    = slots.map(s => s.main.temp);
+    const winds    = slots.map(s => s.wind.speed);
+    const rains    = slots.map(s => s.rain ? s.rain['3h'] || 0 : 0);
+    const pops     = slots.map(s => s.pop || 0);
+    const weatherIds = slots.map(s => s.weather[0].id);
+    // météo dominante = pire condition
+    const worstId = weatherIds.reduce((a,b) => {
+      const score = id => {
+        if(id>=200&&id<300) return 5;
+        if(id>=500&&id<600) return 4;
+        if(id>=300&&id<400) return 3;
+        if(id>=600&&id<700) return 2;
+        if(id>=700&&id<800) return 1;
+        return 0;
+      };
+      return score(a) >= score(b) ? a : b;
+    });
+    const worstSlot = slots.find(s => s.weather[0].id === worstId) || slots[Math.floor(slots.length/2)];
+    return {
+      date:        slots[0].date || new Date(slots[0].dt * 1000),
+      tempMin:     Math.round(Math.min(...temps)),
+      tempMax:     Math.round(Math.max(...temps)),
+      windSpeed:   Math.round(Math.max(...winds) * 3.6),
+      windDeg:     slots[Math.floor(slots.length/2)].wind.deg,
+      rain:        Math.round(rains.reduce((a,b)=>a+b,0) * 10) / 10,
+      pop:         Math.round(Math.max(...pops) * 100),
+      weatherId:   worstId,
+      description: worstSlot.weather[0].description,
     };
-    return { rise: toLocal(d.results.sunrise), set: toLocal(d.results.sunset) };
+  }
+
+  async function getSunTimes(lat, lon, dateStr) {
+    try {
+      const r = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&date=${dateStr}&formatted=0`);
+      const d = await r.json();
+      if (d.status !== 'OK') return null;
+      const fmt = iso => {
+        const dd = new Date(iso);
+        return `${dd.getHours().toString().padStart(2,'0')}h${dd.getMinutes().toString().padStart(2,'0')}`;
+      };
+      return { rise: fmt(d.results.sunrise), set: fmt(d.results.sunset) };
+    } catch(e) { return null; }
   }
 
   async function init() {
-    if (!navigator.geolocation) {
-      showError('Géolocalisation non supportée par ce navigateur.');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(async (pos) => {
+    if (!navigator.geolocation) { showError('Géolocalisation non supportée.'); return; }
+
+    navigator.geolocation.getCurrentPosition(async pos => {
       const { latitude: lat, longitude: lon } = pos.coords;
 
-      // Géocodage inverse pour afficher la ville
+      // Ville
       try {
-        const geoR = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`);
-        const geoD = await geoR.json();
-        if (geoD.length) document.getElementById('loc-text').textContent = `${geoD[0].name}, ${geoD[0].country}`;
+        const g = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`);
+        const gd = await g.json();
+        if (gd.length) document.getElementById('loc-text').textContent = `${gd[0].name}, ${gd[0].country}`;
       } catch(e) {}
 
-      // Météo 7 jours (One Call API 3.0 ou 2.5)
-      const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,hourly,alerts&units=metric&lang=fr&appid=${API_KEY}`;
+      // Forecast 5 jours / 3h (gratuit !)
       let data;
       try {
-        const resp = await fetch(url);
-        data = await resp.json();
-        if (!data.daily) throw new Error(data.message || 'Erreur API');
+        const r = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=fr&appid=${API_KEY}`);
+        data = await r.json();
+        if (data.cod !== '200') throw new Error(data.message);
       } catch(e) {
-        showError(`Erreur météo : ${e.message}<br><small>Vérifiez votre clé API OpenWeatherMap.</small>`);
-        return;
+        showError(`Erreur météo : ${e.message}`); return;
       }
 
-      const tz = data.timezone_offset;
-      const days = data.daily.slice(0, 7);
+      const grouped = groupByDay(data.list).slice(0, 7);
 
-      // Sunrise-sunset pour chaque jour
-      const sunPromises = days.map(d => {
-        const dd = new Date(d.dt * 1000);
-        const dateStr = `${dd.getFullYear()}-${(dd.getMonth()+1).toString().padStart(2,'0')}-${dd.getDate().toString().padStart(2,'0')}`;
-        return getSunTimes(lat, lon, dateStr);
+      // Lever/coucher en parallèle
+      const sunPromises = grouped.map(g => {
+        const d = new Date(g.slots[0].dt * 1000);
+        const ds = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+        return getSunTimes(lat, lon, ds);
       });
       const sunData = await Promise.all(sunPromises);
 
@@ -335,43 +237,43 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'cards-wrapper';
 
-      days.forEach((day, i) => {
-        const dt    = new Date(day.dt * 1000);
-        const nomJ  = jours[dt.getDay()];
-        const dateF = `${dt.getDate()} ${mois[dt.getMonth()]}`;
+      grouped.forEach((g, i) => {
+        const day     = summarizeDay(g.slots);
+        const dt      = new Date(g.slots[0].dt * 1000);
         const isToday = i === 0;
-        const alert = alertInfo(day);
-        const wind  = Math.round(day.wind_speed * 3.6);
-        const dir   = windDir(day.wind_deg);
-        const rain  = day.rain ? Math.round(day.rain * 10) / 10 : 0;
-        const pop   = Math.round((day.pop || 0) * 100);
-        const icon  = weatherIcon(day.weather[0].id);
-        const sun   = sunData[i];
-        const sunrise = sun ? sun.rise : formatTime(day.sunrise, tz);
-        const sunset  = sun ? sun.set  : formatTime(day.sunset,  tz);
+        const nomJ    = jours[dt.getDay()];
+        const dateF   = `${dt.getDate()} ${mois[dt.getMonth()]}`;
+        const alert   = alertInfo(day.rain, day.windSpeed, day.weatherId);
+        const sun     = sunData[i];
+        const sunrise = sun ? sun.rise : '--h--';
+        const sunset  = sun ? sun.set  : '--h--';
+        const icon    = weatherIcon(day.weatherId);
 
         const card = document.createElement('div');
         card.className = 'day-card' + (isToday ? ' today' : '');
-
         card.innerHTML = `
           ${isToday ? '<div class="today-badge">Aujourd\'hui</div>' : ''}
           <div class="day-header">
             <div class="day-icon">${icon}</div>
             <div>
               <div class="day-name">${isToday ? '🚴 ' : ''}${nomJ}</div>
-              <div class="day-date">${dateF} — ${day.weather[0].description}</div>
+              <div class="day-date">${dateF} — ${day.description}</div>
             </div>
           </div>
           <div class="day-alert ${alert.cls}">${alert.msg}</div>
           <div class="day-stats">
-            <div class="stat"><span class="stat-icon">🌡️</span><div>Temp <strong>${Math.round(day.temp.min)}° / ${Math.round(day.temp.max)}°C</strong></div></div>
-            <div class="stat"><span class="stat-icon">💨</span><div>Vent <strong>${dir} ${wind} km/h</strong></div></div>
-            <div class="stat"><span class="stat-icon">💧</span><div>Précip. <strong>${rain} mm</strong></div></div>
-            <div class="stat"><span class="stat-icon">☔</span><div>Risque pluie <strong>${pop}%</strong></div></div>
-            <div class="stat sun-row"><span class="stat-icon">🌅</span> Lever <strong>${sunrise}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;<span class="stat-icon">🌇</span> Coucher <strong>${sunset}</strong></div>
+            <div class="stat"><span class="stat-icon">🌡️</span><div>Temp <strong>${day.tempMin}° / ${day.tempMax}°C</strong></div></div>
+            <div class="stat"><span class="stat-icon">💨</span><div>Vent <strong>${windDir(day.windDeg)} ${day.windSpeed} km/h</strong></div></div>
+            <div class="stat"><span class="stat-icon">💧</span><div>Précip. <strong>${day.rain} mm</strong></div></div>
+            <div class="stat"><span class="stat-icon">☔</span><div>Risque pluie <strong>${day.pop}%</strong></div></div>
+            <div class="stat sun-row">
+              <span class="stat-icon">🌅</span> Lever <strong>${sunrise}</strong>
+              &nbsp;|&nbsp;
+              <span class="stat-icon">🌇</span> Coucher <strong>${sunset}</strong>
+            </div>
             <div class="rain-bar-wrap">
-              <div class="rain-bar-label">Probabilité de pluie — ${pop}%</div>
-              <div class="rain-bar-track"><div class="rain-bar-fill" style="width:${pop}%"></div></div>
+              <div class="rain-bar-label">Probabilité de pluie — ${day.pop}%</div>
+              <div class="rain-bar-track"><div class="rain-bar-fill" style="width:${day.pop}%"></div></div>
             </div>
           </div>
         `;
@@ -380,19 +282,13 @@
 
       document.getElementById('content').appendChild(wrapper);
 
-    }, (err) => {
-      showError('Impossible d\'obtenir ta position.<br><small>' + err.message + '</small>');
-    });
+    }, err => showError('Position refusée : ' + err.message));
   }
 
   function showError(msg) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
-    document.getElementById('content').innerHTML = `
-      <div class="error-box">
-        <h2>😬 Oups !</h2>
-        <p>${msg}</p>
-      </div>`;
+    document.getElementById('content').innerHTML = `<div class="error-box"><h2>😬 Oups !</h2><p>${msg}</p></div>`;
   }
 
   init();
