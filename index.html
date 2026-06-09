@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🚴 Mon Brief Vélotaf</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      padding: 20px;
+      color: white;
+    }
+
+    header {
+      text-align: center;
+      padding: 30px 0 20px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #f093fb, #f5a623, #4facfe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradient-shift 3s ease infinite;
+      background-size: 200%;
+    }
+
+    @keyframes gradient-shift {
+      0%   { background-position: 0% }
+      50%  { background-position: 100% }
+      100% { background-position: 0% }
+    }
+
+    header p#location {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .alert-banner {
+      text-align: center;
+      background: linear-gradient(90deg, #11998e, #38ef7d);
+      border-radius: 16px;
+      padding: 14px 20px;
+      margin: 0 auto 24px;
+      max-width: 700px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #1a1a2e;
+      box-shadow: 0 0 20px #38ef7d55;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px #38ef7d55; }
+      50%       { box-shadow: 0 0 40px #38ef7daa; }
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 24px 28px;
+      flex: 1 1 280px;
+      max-width: 340px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(79, 172, 254, 0.3);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(79,172,254,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-day {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #4facfe;
+      margin-bottom: 4px;
+    }
+
+    .card-date {
+      font-size: 1.1rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .card-icon {
+      font-size: 3.5rem;
+      text-align: center;
+      display: block;
+      margin-bottom: 10px;
+      animation: bounce 2s ease infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-6px); }
+    }
+
+    .card-desc {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #f5a623;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+    }
+
+    .info-row .icon { font-size: 1.2rem; min-width: 24px; text-align: center; }
+
+    .info-row .label { color: #aaa; font-size: 0.78rem; }
+    .info-row .value { font-weight: 700; color: #fff; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 14px;
+    }
+
+    .badge-ok    { background: #38ef7d33; color: #38ef7d; border: 1px solid #38ef7d55; }
+    .badge-warn  { background: #f5a62333; color: #f5a623; border: 1px solid #f5a62355; }
+    .badge-bad   { background: #ff416c33; color: #ff416c; border: 1px solid #ff416c55; }
+
+    .source {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      font-size: 1.2rem;
+      color: #4facfe;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* Vélo animé */
+    .bike-anim {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      animation: ride 1.5s linear infinite;
+    }
+
+    @keyframes ride {
+      0%   { transform: translateX(-10px) rotate(-2deg); }
+      50%  { transform: translateX(10px) rotate(2deg); }
+      100% { transform: translateX(-10px) rotate(-2deg); }
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.8rem;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="bike-anim">🚴</div>
+    <h1>Mon Brief Vélotaf 🌟</h1>
+    <p id="location">📍 Localisation en cours...</p>
+  </header>
+
+  <div id="alert" class="alert-banner" style="display:none;"></div>
+
+  <div id="cards" class="cards">
+    <div class="loading">⚡ Chargement de la météo...</div>
+  </div>
+
+  <p class="source">Source : Open-Meteo · Nominatim</p>
+
+  <footer>Fait avec ❤️ pour les cyclistes urbains</footer>
+
+<script>
+  const API_KEY_OPENMETEO = ""; // Pas besoin de clé pour Open-Meteo !
+
+  const weatherCodes = {
+    0:  { icon: "☀️",  desc: "Ciel dégagé",       badge: "ok" },
+    1:  { icon: "🌤️", desc: "Peu nuageux",         badge: "ok" },
+    2:  { icon: "⛅",  desc: "Partiellement nuageux",badge: "ok" },
+    3:  { icon: "☁️",  desc: "Couvert",             badge: "ok" },
+    45: { icon: "🌫️", desc: "Brouillard",           badge: "warn" },
+    48: { icon: "🌫️", desc: "Brouillard givrant",   badge: "warn" },
+    51: { icon: "🌦️", desc: "Bruine légère",        badge: "warn" },
+    53: { icon: "🌦️", desc: "Bruine modérée",       badge: "warn" },
+    55: { icon: "🌧️", desc: "Bruine forte",         badge: "bad" },
+    61: { icon: "🌧️", desc: "Pluie légère",         badge: "warn" },
+    63: { icon: "🌧️", desc: "Pluie modérée",        badge: "warn" },
+    65: { icon: "🌧️", desc: "Pluie forte",          badge: "bad" },
+    71: { icon: "🌨️", desc: "Neige légère",         badge: "warn" },
+    73: { icon: "🌨️", desc: "Neige modérée",        badge: "bad" },
+    75: { icon: "❄️",  desc: "Neige forte",          badge: "bad" },
+    80: { icon: "🌦️", desc: "Averses légères",      badge: "warn" },
+    81: { icon: "🌧️", desc: "Averses modérées",     badge: "warn" },
+    82: { icon: "⛈️",  desc: "Averses violentes",    badge: "bad" },
+    95: { icon: "⛈️",  desc: "Orage",               badge: "bad" },
+    99: { icon: "⛈️",  desc: "Orage + grêle",       badge: "bad" },
+  };
+
+  function getWeatherInfo(code) {
+    return weatherCodes[code] || { icon: "🌡️", desc: "Inconnu", badge: "ok" };
+  }
+
+  function getWindDirection(deg) {
+    const dirs = ["N","NE","E","SE","S","SO","O","NO"];
+    return dirs[Math.round(deg / 45) % 8];
+  }
+
+  function getAirQualityLabel(aqi) {
+    if (aqi === null) return { label: "Inconnue", badge: "ok" };
+    if (aqi <= 50)  return { label: "Excellente 🟢", badge: "ok" };
+    if (aqi <= 100) return { label: "Bonne 🟡",      badge: "ok" };
+    if (aqi <= 150) return { label: "Moyenne 🟠",    badge: "warn" };
+    return              { label: "Mauvaise 🔴",       badge: "bad" };
+  }
+
+  function formatDate(dateStr, index) {
+    const d = new Date(dateStr);
+    const days = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+    const months = ["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+    const dayName = index === 0 ? "Aujourd'hui" : index === 1 ? "Demain" : days[d.getDay()];
+    return {
+      label: dayName,
+      date: `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+    };
+  }
+
+  function sunTime(iso) {
+    const d = new Date(iso);
+    return `${d.getHours()}h${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  function getAlertMessage(days) {
+    const alerts = [];
+    for (const d of days) {
+      const w = getWeatherInfo(d.weathercode);
+      if (w.badge === "bad")  alerts.push(`⚠️ ${formatDate(d.date, days.indexOf(d)).label} : ${w.desc}`);
+      if (d.windspeed > 40)   alerts.push(`💨 Vent fort prévu ${formatDate(d.date, days.indexOf(d)).label}`);
+    }
+    return alerts.length
+      ? alerts.join(" · ")
+      : "🚴 Pas d'alerte particulière, bon vélotaf !";
+  }
+
+  function buildCard(dayData, index) {
+    const { label, date } = formatDate(dayData.date, index);
+    const w   = getWeatherInfo(dayData.weathercode);
+    const aq  = getAirQualityLabel(dayData.aqi);
+    const dir = getWindDirection(dayData.winddir);
+    const rain = dayData.rain > 0
+      ? `🌧️ ${dayData.rain.toFixed(1)} mm`
+      : "✅ Pas de pluie";
+
+    return `
+      <div class="card">
+        <div class="card-day">${label}</div>
+        <div class="card-date">${date}</div>
+        <span class="card-icon">${w.icon}</span>
+        <div class="card-desc">${w.desc}</div>
+
+        <div class="info-row">
+          <span class="icon">🌧️</span>
+          <div><div class="label">Précipitations</div><div class="value">${rain}</div></div>
+        </div>
+
+        <div class="info-row">
+          <span class="icon">🌡️</span>
+          <div><div class="label">Température</div><div class="value">Min ${Math.round(dayData.tmin)}°C · Max ${Math.round(dayData.tmax)}°C</div></div>
+        </div>
+
+        <div class="info-row">
+          <span class="icon">💨</span>
+          <div><div class="label">Vent</div><div class="value">${dir} · ${Math.round(dayData.windspeed)} km/h</div></div>
+        </div>
+
+        <div class="info-row">
+          <span class="icon">🫁</span>
+          <div><div class="label">Qualité de l'air</div><div class="value">${aq.label}</div></div>
+        </div>
+
+        <div class="info-row">
+          <span class="icon">🌅</span>
+          <div><div class="label">Lever / Coucher</div><div class="value">${sunTime(dayData.sunrise)} · ${sunTime(dayData.sunset)}</div></div>
+        </div>
+
+        <span class="badge badge-${w.badge}">${w.badge === 'ok' ? '✅ Bon trajet' : w.badge === 'warn' ? '⚠️ Prudence' : '🚨 Attention'}</span>
+      </div>
+    `;
+  }
+
+  async function loadWeather(lat, lon) {
+    // Météo
+    const meteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+      + `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant,sunrise,sunset`
+      + `&timezone=auto&forecast_days=3`;
+
+    // Qualité de l'air
+    const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}`
+      + `&daily=us_aqi&timezone=auto&forecast_days=3`;
+
+    const [meteoRes, airRes] = await Promise.all([
+      fetch(meteoUrl),
+      fetch(airUrl)
+    ]);
+
+    const meteo = await meteoRes.json();
+    const air   = await airRes.json();
+
+    const days = meteo.daily.time.map((date, i) => ({
+      date,
+      weathercode: meteo.daily.weathercode[i],
+      tmax:        meteo.daily.temperature_2m_max[i],
+      tmin:        meteo.daily.temperature_2m_min[i],
+      rain:        meteo.daily.precipitation_sum[i],
+      windspeed:   meteo.daily.windspeed_10m_max[i],
+      winddir:     meteo.daily.winddirection_10m_dominant[i],
+      sunrise:     meteo.daily.sunrise[i],
+      sunset:      meteo.daily.sunset[i],
+      aqi:         air?.daily?.us_aqi?.[i] ?? null,
+    }));
+
+    const alertEl = document.getElementById("alert");
+    alertEl.textContent = getAlertMessage(days);
+    alertEl.style.display = "block";
+
+    document.getElementById("cards").innerHTML = days.map((d, i) => buildCard(d, i)).join("");
+  }
+
+  async function reverseGeocode(lat, lon) {
+    const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+    const data = await res.json();
+    const city = data.address.city || data.address.town || data.address.village || "";
+    const country = data.address.country || "";
+    document.getElementById("location").textContent = `📍 ${city}, ${country}`;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude: lat, longitude: lon } = pos.coords;
+      await Promise.all([
+        reverseGeocode(lat, lon),
+        loadWeather(lat, lon)
+      ]);
+    },
+    (err) => {
+      document.getElementById("location").textContent = "❌ Localisation refusée — activez la géolocalisation";
+      document.getElementById("cards").innerHTML = `<p style="color:#ff416c;text-align:center">Impossible de charger la météo sans votre position.</p>`;
+    }
+  );
+</script>
+</body>
+</html>
