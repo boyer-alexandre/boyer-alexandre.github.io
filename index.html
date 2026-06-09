@@ -13,8 +13,8 @@
       font-family: 'Nunito', sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       min-height: 100vh;
+      color: #fff;
       padding: 20px;
-      color: white;
     }
 
     header {
@@ -23,386 +23,379 @@
     }
 
     header h1 {
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 900;
-      background: linear-gradient(90deg, #f093fb, #f5a623, #4facfe);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradient-shift 3s ease infinite;
-      background-size: 200%;
+      letter-spacing: 1px;
+      text-shadow: 0 0 20px #a78bfa;
     }
 
-    @keyframes gradient-shift {
-      0%   { background-position: 0% }
-      50%  { background-position: 100% }
-      100% { background-position: 0% }
+    header p {
+      font-size: 0.95rem;
+      color: #c4b5fd;
+      margin-top: 6px;
     }
 
-    header p#location {
-      margin-top: 8px;
-      font-size: 0.9rem;
-      color: #aaa;
-    }
-
-    .alert-banner {
+    #location-bar {
       text-align: center;
-      background: linear-gradient(90deg, #11998e, #38ef7d);
-      border-radius: 16px;
-      padding: 14px 20px;
-      margin: 0 auto 24px;
-      max-width: 700px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: #1a1a2e;
-      box-shadow: 0 0 20px #38ef7d55;
-      animation: pulse 2s infinite;
+      background: rgba(167,139,250,0.15);
+      border: 1px solid #a78bfa55;
+      border-radius: 20px;
+      padding: 10px 20px;
+      margin: 0 auto 30px;
+      max-width: 500px;
+      font-size: 0.9rem;
+      color: #e9d5ff;
+    }
+
+    #location-bar span { font-weight: 700; color: #a78bfa; }
+
+    #loading {
+      text-align: center;
+      padding: 60px;
+      font-size: 1.3rem;
+      color: #c4b5fd;
+      animation: pulse 1.5s ease-in-out infinite;
     }
 
     @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 20px #38ef7d55; }
-      50%       { box-shadow: 0 0 40px #38ef7daa; }
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
     }
 
-    .cards {
+    .cards-wrapper {
       display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      max-width: 1100px;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 600px;
       margin: 0 auto;
     }
 
-    .card {
-      background: rgba(255,255,255,0.07);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 24px;
-      padding: 24px 28px;
-      flex: 1 1 280px;
-      max-width: 340px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    .day-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(167,139,250,0.3);
+      border-radius: 20px;
+      padding: 20px 24px;
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s, box-shadow 0.2s;
       position: relative;
       overflow: hidden;
     }
 
-    .card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 20px 60px rgba(79, 172, 254, 0.3);
+    .day-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(167,139,250,0.25);
     }
 
-    .card::before {
-      content: '';
+    .day-card.today {
+      border: 2px solid #a78bfa;
+      background: rgba(167,139,250,0.12);
+    }
+
+    .today-badge {
       position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(79,172,254,0.06) 0%, transparent 70%);
-      pointer-events: none;
+      top: 14px;
+      right: 16px;
+      background: #a78bfa;
+      color: #1e1b4b;
+      font-weight: 900;
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    .card-day {
+    .day-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .day-icon { font-size: 2.4rem; }
+
+    .day-name {
+      font-size: 1.2rem;
+      font-weight: 900;
+      text-transform: capitalize;
+    }
+
+    .day-date {
       font-size: 0.8rem;
+      color: #a5b4fc;
+      margin-top: 2px;
+    }
+
+    .day-alert {
+      background: rgba(167,139,250,0.2);
+      border-left: 3px solid #a78bfa;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #4facfe;
+      margin-bottom: 14px;
+      color: #e9d5ff;
+    }
+
+    .day-alert.good  { border-color: #34d399; background: rgba(52,211,153,0.1); color: #6ee7b7; }
+    .day-alert.rain  { border-color: #60a5fa; background: rgba(96,165,250,0.1); color: #93c5fd; }
+    .day-alert.wind  { border-color: #fbbf24; background: rgba(251,191,36,0.1); color: #fde68a; }
+    .day-alert.storm { border-color: #f87171; background: rgba(248,113,113,0.1); color: #fca5a5; }
+
+    .day-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #ddd6fe;
+    }
+
+    .stat-icon { font-size: 1.1rem; }
+
+    .stat strong { color: #fff; font-weight: 700; }
+
+    .sun-row {
+      grid-column: 1 / -1;
+      justify-content: center;
+      background: rgba(251,191,36,0.08);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+
+    .rain-bar-wrap {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+    }
+
+    .rain-bar-label {
+      font-size: 0.75rem;
+      color: #93c5fd;
       margin-bottom: 4px;
     }
 
-    .card-date {
-      font-size: 1.1rem;
-      font-weight: 900;
-      margin-bottom: 16px;
-      color: #fff;
+    .rain-bar-track {
+      background: rgba(96,165,250,0.15);
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
     }
 
-    .card-icon {
-      font-size: 3.5rem;
-      text-align: center;
-      display: block;
-      margin-bottom: 10px;
-      animation: bounce 2s ease infinite;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-6px); }
-    }
-
-    .card-desc {
-      text-align: center;
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 18px;
-      color: #f5a623;
-    }
-
-    .info-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      margin-bottom: 10px;
-      padding: 8px 12px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 12px;
-    }
-
-    .info-row .icon { font-size: 1.2rem; min-width: 24px; text-align: center; }
-
-    .info-row .label { color: #aaa; font-size: 0.78rem; }
-    .info-row .value { font-weight: 700; color: #fff; }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 30px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      margin-top: 14px;
-    }
-
-    .badge-ok    { background: #38ef7d33; color: #38ef7d; border: 1px solid #38ef7d55; }
-    .badge-warn  { background: #f5a62333; color: #f5a623; border: 1px solid #f5a62355; }
-    .badge-bad   { background: #ff416c33; color: #ff416c; border: 1px solid #ff416c55; }
-
-    .source {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 0.75rem;
-      color: #555;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 60px;
-      font-size: 1.2rem;
-      color: #4facfe;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.3; }
-    }
-
-    /* Vélo animé */
-    .bike-anim {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 10px;
-      animation: ride 1.5s linear infinite;
-    }
-
-    @keyframes ride {
-      0%   { transform: translateX(-10px) rotate(-2deg); }
-      50%  { transform: translateX(10px) rotate(2deg); }
-      100% { transform: translateX(-10px) rotate(-2deg); }
+    .rain-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #60a5fa, #3b82f6);
+      border-radius: 20px;
+      transition: width 0.8s ease;
     }
 
     footer {
       text-align: center;
       margin-top: 40px;
+      padding-bottom: 30px;
+      color: #6b7280;
       font-size: 0.8rem;
-      color: #444;
     }
+
+    footer a { color: #a78bfa; text-decoration: none; }
+
+    .error-box {
+      text-align: center;
+      background: rgba(248,113,113,0.15);
+      border: 1px solid #f87171;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 480px;
+      margin: 40px auto;
+      color: #fca5a5;
+    }
+
+    .error-box h2 { font-size: 1.4rem; margin-bottom: 10px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="bike-anim">🚴</div>
-    <h1>Mon Brief Vélotaf 🌟</h1>
-    <p id="location">📍 Localisation en cours...</p>
-  </header>
+<header>
+  <h1>🚴 Mon Brief Vélotaf</h1>
+  <p>7 jours de météo pour tes trajets à vélo</p>
+</header>
 
-  <div id="alert" class="alert-banner" style="display:none;"></div>
+<div id="location-bar">📍 Localisation : <span id="loc-text">en cours…</span></div>
 
-  <div id="cards" class="cards">
-    <div class="loading">⚡ Chargement de la météo...</div>
-  </div>
+<div id="loading">🚲 Chargement de ta météo vélo…</div>
+<div id="content" style="display:none"></div>
 
-  <p class="source">Source : Open-Meteo · Nominatim</p>
-
-  <footer>Fait avec ❤️ pour les cyclistes urbains</footer>
+<footer>
+  Données météo : <a href="https://openweathermap.org" target="_blank">OpenWeatherMap</a> •
+  Lever/coucher : <a href="https://sunrise-sunset.org" target="_blank">Sunrise-Sunset.org</a>
+</footer>
 
 <script>
-  const API_KEY_OPENMETEO = ""; // Pas besoin de clé pour Open-Meteo !
+  // ⚠️ REMPLACE PAR TA CLÉ API OPENWEATHERMAP (gratuite sur openweathermap.org)
+  const API_KEY = 'VOTRE_CLE_API_ICI';
 
-  const weatherCodes = {
-    0:  { icon: "☀️",  desc: "Ciel dégagé",       badge: "ok" },
-    1:  { icon: "🌤️", desc: "Peu nuageux",         badge: "ok" },
-    2:  { icon: "⛅",  desc: "Partiellement nuageux",badge: "ok" },
-    3:  { icon: "☁️",  desc: "Couvert",             badge: "ok" },
-    45: { icon: "🌫️", desc: "Brouillard",           badge: "warn" },
-    48: { icon: "🌫️", desc: "Brouillard givrant",   badge: "warn" },
-    51: { icon: "🌦️", desc: "Bruine légère",        badge: "warn" },
-    53: { icon: "🌦️", desc: "Bruine modérée",       badge: "warn" },
-    55: { icon: "🌧️", desc: "Bruine forte",         badge: "bad" },
-    61: { icon: "🌧️", desc: "Pluie légère",         badge: "warn" },
-    63: { icon: "🌧️", desc: "Pluie modérée",        badge: "warn" },
-    65: { icon: "🌧️", desc: "Pluie forte",          badge: "bad" },
-    71: { icon: "🌨️", desc: "Neige légère",         badge: "warn" },
-    73: { icon: "🌨️", desc: "Neige modérée",        badge: "bad" },
-    75: { icon: "❄️",  desc: "Neige forte",          badge: "bad" },
-    80: { icon: "🌦️", desc: "Averses légères",      badge: "warn" },
-    81: { icon: "🌧️", desc: "Averses modérées",     badge: "warn" },
-    82: { icon: "⛈️",  desc: "Averses violentes",    badge: "bad" },
-    95: { icon: "⛈️",  desc: "Orage",               badge: "bad" },
-    99: { icon: "⛈️",  desc: "Orage + grêle",       badge: "bad" },
-  };
+  const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const mois  = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
 
-  function getWeatherInfo(code) {
-    return weatherCodes[code] || { icon: "🌡️", desc: "Inconnu", badge: "ok" };
+  function weatherIcon(id, isDay = true) {
+    if (id >= 200 && id < 300) return '⛈️';
+    if (id >= 300 && id < 400) return '🌦️';
+    if (id >= 500 && id < 600) return id >= 502 ? '🌧️' : '🌦️';
+    if (id >= 600 && id < 700) return '❄️';
+    if (id >= 700 && id < 800) return '🌫️';
+    if (id === 800) return isDay ? '☀️' : '🌙';
+    if (id === 801) return '🌤️';
+    if (id === 802) return '⛅';
+    return '☁️';
   }
 
-  function getWindDirection(deg) {
-    const dirs = ["N","NE","E","SE","S","SO","O","NO"];
+  function alertInfo(day) {
+    const rain = day.rain || 0;
+    const wind = day.wind_speed * 3.6;
+    const id   = day.weather[0].id;
+    if (id >= 200 && id < 300) return { cls:'storm', msg:'⚡ Orage prévu — reste chez toi !' };
+    if (rain > 10)              return { cls:'rain',  msg:'🌧️ Grosse pluie — imperméable obligatoire !' };
+    if (rain > 2)               return { cls:'rain',  msg:'🌦️ Pluie légère — couvre-toi !' };
+    if (wind > 50)              return { cls:'wind',  msg:'💨 Vent violent — accroche-toi au guidon !' };
+    if (wind > 30)              return { cls:'wind',  msg:'🌬️ Vent fort — prévoir plus de temps' };
+    return { cls:'good', msg:'✅ Pas d\'alerte — bon trajet !' };
+  }
+
+  function formatTime(unix, tz) {
+    const d = new Date((unix + tz) * 1000);
+    const h = d.getUTCHours().toString().padStart(2,'0');
+    const m = d.getUTCMinutes().toString().padStart(2,'0');
+    return `${h}h${m}`;
+  }
+
+  function windDir(deg) {
+    const dirs = ['N','NE','E','SE','S','SO','O','NO'];
     return dirs[Math.round(deg / 45) % 8];
   }
 
-  function getAirQualityLabel(aqi) {
-    if (aqi === null) return { label: "Inconnue", badge: "ok" };
-    if (aqi <= 50)  return { label: "Excellente 🟢", badge: "ok" };
-    if (aqi <= 100) return { label: "Bonne 🟡",      badge: "ok" };
-    if (aqi <= 150) return { label: "Moyenne 🟠",    badge: "warn" };
-    return              { label: "Mauvaise 🔴",       badge: "bad" };
-  }
-
-  function formatDate(dateStr, index) {
-    const d = new Date(dateStr);
-    const days = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
-    const months = ["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
-    const dayName = index === 0 ? "Aujourd'hui" : index === 1 ? "Demain" : days[d.getDay()];
-    return {
-      label: dayName,
-      date: `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+  async function getSunTimes(lat, lon, dateStr) {
+    const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&date=${dateStr}&formatted=0`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.status !== 'OK') return null;
+    const toLocal = (iso) => {
+      const dd = new Date(iso);
+      const h = dd.getHours().toString().padStart(2,'0');
+      const mm = dd.getMinutes().toString().padStart(2,'0');
+      return `${h}h${mm}`;
     };
+    return { rise: toLocal(d.results.sunrise), set: toLocal(d.results.sunset) };
   }
 
-  function sunTime(iso) {
-    const d = new Date(iso);
-    return `${d.getHours()}h${String(d.getMinutes()).padStart(2,'0')}`;
-  }
-
-  function getAlertMessage(days) {
-    const alerts = [];
-    for (const d of days) {
-      const w = getWeatherInfo(d.weathercode);
-      if (w.badge === "bad")  alerts.push(`⚠️ ${formatDate(d.date, days.indexOf(d)).label} : ${w.desc}`);
-      if (d.windspeed > 40)   alerts.push(`💨 Vent fort prévu ${formatDate(d.date, days.indexOf(d)).label}`);
+  async function init() {
+    if (!navigator.geolocation) {
+      showError('Géolocalisation non supportée par ce navigateur.');
+      return;
     }
-    return alerts.length
-      ? alerts.join(" · ")
-      : "🚴 Pas d'alerte particulière, bon vélotaf !";
-  }
-
-  function buildCard(dayData, index) {
-    const { label, date } = formatDate(dayData.date, index);
-    const w   = getWeatherInfo(dayData.weathercode);
-    const aq  = getAirQualityLabel(dayData.aqi);
-    const dir = getWindDirection(dayData.winddir);
-    const rain = dayData.rain > 0
-      ? `🌧️ ${dayData.rain.toFixed(1)} mm`
-      : "✅ Pas de pluie";
-
-    return `
-      <div class="card">
-        <div class="card-day">${label}</div>
-        <div class="card-date">${date}</div>
-        <span class="card-icon">${w.icon}</span>
-        <div class="card-desc">${w.desc}</div>
-
-        <div class="info-row">
-          <span class="icon">🌧️</span>
-          <div><div class="label">Précipitations</div><div class="value">${rain}</div></div>
-        </div>
-
-        <div class="info-row">
-          <span class="icon">🌡️</span>
-          <div><div class="label">Température</div><div class="value">Min ${Math.round(dayData.tmin)}°C · Max ${Math.round(dayData.tmax)}°C</div></div>
-        </div>
-
-        <div class="info-row">
-          <span class="icon">💨</span>
-          <div><div class="label">Vent</div><div class="value">${dir} · ${Math.round(dayData.windspeed)} km/h</div></div>
-        </div>
-
-        <div class="info-row">
-          <span class="icon">🫁</span>
-          <div><div class="label">Qualité de l'air</div><div class="value">${aq.label}</div></div>
-        </div>
-
-        <div class="info-row">
-          <span class="icon">🌅</span>
-          <div><div class="label">Lever / Coucher</div><div class="value">${sunTime(dayData.sunrise)} · ${sunTime(dayData.sunset)}</div></div>
-        </div>
-
-        <span class="badge badge-${w.badge}">${w.badge === 'ok' ? '✅ Bon trajet' : w.badge === 'warn' ? '⚠️ Prudence' : '🚨 Attention'}</span>
-      </div>
-    `;
-  }
-
-  async function loadWeather(lat, lon) {
-    // Météo
-    const meteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
-      + `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant,sunrise,sunset`
-      + `&timezone=auto&forecast_days=3`;
-
-    // Qualité de l'air
-    const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}`
-      + `&daily=us_aqi&timezone=auto&forecast_days=3`;
-
-    const [meteoRes, airRes] = await Promise.all([
-      fetch(meteoUrl),
-      fetch(airUrl)
-    ]);
-
-    const meteo = await meteoRes.json();
-    const air   = await airRes.json();
-
-    const days = meteo.daily.time.map((date, i) => ({
-      date,
-      weathercode: meteo.daily.weathercode[i],
-      tmax:        meteo.daily.temperature_2m_max[i],
-      tmin:        meteo.daily.temperature_2m_min[i],
-      rain:        meteo.daily.precipitation_sum[i],
-      windspeed:   meteo.daily.windspeed_10m_max[i],
-      winddir:     meteo.daily.winddirection_10m_dominant[i],
-      sunrise:     meteo.daily.sunrise[i],
-      sunset:      meteo.daily.sunset[i],
-      aqi:         air?.daily?.us_aqi?.[i] ?? null,
-    }));
-
-    const alertEl = document.getElementById("alert");
-    alertEl.textContent = getAlertMessage(days);
-    alertEl.style.display = "block";
-
-    document.getElementById("cards").innerHTML = days.map((d, i) => buildCard(d, i)).join("");
-  }
-
-  async function reverseGeocode(lat, lon) {
-    const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
-    const data = await res.json();
-    const city = data.address.city || data.address.town || data.address.village || "";
-    const country = data.address.country || "";
-    document.getElementById("location").textContent = `📍 ${city}, ${country}`;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude: lat, longitude: lon } = pos.coords;
-      await Promise.all([
-        reverseGeocode(lat, lon),
-        loadWeather(lat, lon)
-      ]);
-    },
-    (err) => {
-      document.getElementById("location").textContent = "❌ Localisation refusée — activez la géolocalisation";
-      document.getElementById("cards").innerHTML = `<p style="color:#ff416c;text-align:center">Impossible de charger la météo sans votre position.</p>`;
-    }
-  );
+
+      // Géocodage inverse pour afficher la ville
+      try {
+        const geoR = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`);
+        const geoD = await geoR.json();
+        if (geoD.length) document.getElementById('loc-text').textContent = `${geoD[0].name}, ${geoD[0].country}`;
+      } catch(e) {}
+
+      // Météo 7 jours (One Call API 3.0 ou 2.5)
+      const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,hourly,alerts&units=metric&lang=fr&appid=${API_KEY}`;
+      let data;
+      try {
+        const resp = await fetch(url);
+        data = await resp.json();
+        if (!data.daily) throw new Error(data.message || 'Erreur API');
+      } catch(e) {
+        showError(`Erreur météo : ${e.message}<br><small>Vérifiez votre clé API OpenWeatherMap.</small>`);
+        return;
+      }
+
+      const tz = data.timezone_offset;
+      const days = data.daily.slice(0, 7);
+
+      // Sunrise-sunset pour chaque jour
+      const sunPromises = days.map(d => {
+        const dd = new Date(d.dt * 1000);
+        const dateStr = `${dd.getFullYear()}-${(dd.getMonth()+1).toString().padStart(2,'0')}-${dd.getDate().toString().padStart(2,'0')}`;
+        return getSunTimes(lat, lon, dateStr);
+      });
+      const sunData = await Promise.all(sunPromises);
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cards-wrapper';
+
+      days.forEach((day, i) => {
+        const dt    = new Date(day.dt * 1000);
+        const nomJ  = jours[dt.getDay()];
+        const dateF = `${dt.getDate()} ${mois[dt.getMonth()]}`;
+        const isToday = i === 0;
+        const alert = alertInfo(day);
+        const wind  = Math.round(day.wind_speed * 3.6);
+        const dir   = windDir(day.wind_deg);
+        const rain  = day.rain ? Math.round(day.rain * 10) / 10 : 0;
+        const pop   = Math.round((day.pop || 0) * 100);
+        const icon  = weatherIcon(day.weather[0].id);
+        const sun   = sunData[i];
+        const sunrise = sun ? sun.rise : formatTime(day.sunrise, tz);
+        const sunset  = sun ? sun.set  : formatTime(day.sunset,  tz);
+
+        const card = document.createElement('div');
+        card.className = 'day-card' + (isToday ? ' today' : '');
+
+        card.innerHTML = `
+          ${isToday ? '<div class="today-badge">Aujourd\'hui</div>' : ''}
+          <div class="day-header">
+            <div class="day-icon">${icon}</div>
+            <div>
+              <div class="day-name">${isToday ? '🚴 ' : ''}${nomJ}</div>
+              <div class="day-date">${dateF} — ${day.weather[0].description}</div>
+            </div>
+          </div>
+          <div class="day-alert ${alert.cls}">${alert.msg}</div>
+          <div class="day-stats">
+            <div class="stat"><span class="stat-icon">🌡️</span><div>Temp <strong>${Math.round(day.temp.min)}° / ${Math.round(day.temp.max)}°C</strong></div></div>
+            <div class="stat"><span class="stat-icon">💨</span><div>Vent <strong>${dir} ${wind} km/h</strong></div></div>
+            <div class="stat"><span class="stat-icon">💧</span><div>Précip. <strong>${rain} mm</strong></div></div>
+            <div class="stat"><span class="stat-icon">☔</span><div>Risque pluie <strong>${pop}%</strong></div></div>
+            <div class="stat sun-row"><span class="stat-icon">🌅</span> Lever <strong>${sunrise}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;<span class="stat-icon">🌇</span> Coucher <strong>${sunset}</strong></div>
+            <div class="rain-bar-wrap">
+              <div class="rain-bar-label">Probabilité de pluie — ${pop}%</div>
+              <div class="rain-bar-track"><div class="rain-bar-fill" style="width:${pop}%"></div></div>
+            </div>
+          </div>
+        `;
+        wrapper.appendChild(card);
+      });
+
+      document.getElementById('content').appendChild(wrapper);
+
+    }, (err) => {
+      showError('Impossible d\'obtenir ta position.<br><small>' + err.message + '</small>');
+    });
+  }
+
+  function showError(msg) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('content').innerHTML = `
+      <div class="error-box">
+        <h2>😬 Oups !</h2>
+        <p>${msg}</p>
+      </div>`;
+  }
+
+  init();
 </script>
 </body>
 </html>
