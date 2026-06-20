@@ -1,0 +1,78 @@
+"use client"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import UploadZone from "@/components/UploadZone"
+import Map3D from "@/components/Map3D"
+import SessionSummary from "@/components/SessionSummary"
+import PhysioAnalysis from "@/components/PhysioAnalysis"
+import { GPXData } from "@/types/gpx"
+import { analyzePhysiology } from "@/lib/physioEngine"
+
+export default function Home() {
+  const [gpxData, setGpxData] = useState<GPXData | null>(null)
+
+  const handleDataReady = (data: GPXData) => {
+    setGpxData(data)
+    // Scroll automatique vers les résultats
+    setTimeout(() => {
+      document.getElementById("results")?.scrollIntoView({ behavior: "smooth" })
+    }, 300)
+  }
+
+  const physio = gpxData ? analyzePhysiology(gpxData) : null
+
+  return (
+    <main className="min-h-screen bg-zinc-950 text-white">
+
+      {/* ───── HERO ───── */}
+      <section className="max-w-3xl mx-auto px-6 py-20 text-center">
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl font-bold mb-4"
+        >
+          🚴 GPX <span className="text-orange-500">Replay</span> 3D
+        </motion.h1>
+        <p className="text-zinc-400 text-xl mb-12">
+          Revivez votre séance en 3D et découvrez ce qu'elle a apporté à votre corps
+        </p>
+        <UploadZone onDataReady={handleDataReady} />
+      </section>
+
+      {/* ───── RÉSULTATS ───── */}
+      <AnimatePresence>
+        {gpxData && physio && (
+          <motion.section
+            id="results"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-6xl mx-auto px-6 pb-20 space-y-12"
+          >
+            {/* Carte 3D */}
+            <Map3D data={gpxData} />
+
+            {/* Résumé */}
+            <SessionSummary data={gpxData} />
+
+            {/* Analyse physio */}
+            <PhysioAnalysis result={physio} />
+
+            {/* Bouton reset */}
+            <div className="text-center">
+              <button
+                onClick={() => setGpxData(null)}
+                className="px-6 py-3 border border-zinc-600 text-zinc-400
+                  rounded-full hover:border-orange-500 hover:text-orange-400
+                  transition-all duration-200"
+              >
+                ↑ Analyser une autre séance
+              </button>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+    </main>
+  )
+}
