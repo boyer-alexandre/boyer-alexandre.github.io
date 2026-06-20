@@ -1,78 +1,1285 @@
-"use client"
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import UploadZone from "@/components/UploadZone"
-import Map3D from "@/components/Map3D"
-import SessionSummary from "@/components/SessionSummary"
-import PhysioAnalysis from "@/components/PhysioAnalysis"
-import { GPXData } from "@/types/gpx"
-import { analyzePhysiology } from "@/lib/physioEngine"
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GPX Replay 3D — Analyse ta séance</title>
+  <meta name="description" content="Upload ton fichier GPX et visualise ton activité en 3D avec une analyse physiologique complète."/>
 
-export default function Home() {
-  const [gpxData, setGpxData] = useState<GPXData | null>(null)
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet"/>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 
-  const handleDataReady = (data: GPXData) => {
-    setGpxData(data)
-    // Scroll automatique vers les résultats
-    setTimeout(() => {
-      document.getElementById("results")?.scrollIntoView({ behavior: "smooth" })
-    }, 300)
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ══════════════════════════════════════
+       RESET & BASE
+    ══════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:  #FF6B35;
+      --night:   #0D0D1A;
+      --navy:    #1A1A2E;
+      --card:    #16213E;
+      --mint:    #00D4AA;
+      --text:    #E8E8F0;
+      --muted:   #8888AA;
+      --border:  #2A2A4A;
+      --radius:  14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--night);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    h1, h2, h3 { font-family: 'Montserrat', sans-serif; }
+
+    /* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ */
+    header {
+      background: var(--navy);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-icon {
+      width: 42px; height: 42px;
+      background: var(--orange);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    header h1 span { color: var(--orange); }
+
+    .header-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    /* ══════════════════════════════════════
+       MAIN LAYOUT
+    ══════════════════════════════════════ */
+    main { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ══════════════════════════════════════
+       UPLOAD ZONE
+    ══════════════════════════════════════ */
+    #upload-section {
+      margin-bottom: 32px;
+    }
+
+    #drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 52px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: var(--card);
+      position: relative;
+    }
+
+    #drop-zone:hover, #drop-zone.dragover {
+      border-color: var(--orange);
+      background: rgba(255,107,53,0.05);
+    }
+
+    #drop-zone .upload-icon { font-size: 52px; margin-bottom: 12px; }
+
+    #drop-zone h2 {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    #drop-zone p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    #file-input { display: none; }
+
+    .btn-upload {
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-upload:hover { opacity: 0.85; }
+
+    .supported {
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════
+       LOADER
+    ══════════════════════════════════════ */
+    #loader {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 52px; height: 52px;
+      border: 4px solid var(--border);
+      border-top-color: var(--orange);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ══════════════════════════════════════
+       ERROR
+    ══════════════════════════════════════ */
+    #error-msg {
+      display: none;
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.3);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      color: #ff8080;
+      margin-top: 12px;
+      font-size: 0.9rem;
+    }
+
+    /* ══════════════════════════════════════
+       RESULTS — 2 colonnes
+    ══════════════════════════════════════ */
+    #results {
+      display: none;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ══════════════════════════════════════
+       CARTE
+    ══════════════════════════════════════ */
+    .map-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .map-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .map-header h3 { font-size: 1rem; color: #fff; }
+
+    .map-style-toggle {
+      display: flex;
+      gap: 6px;
+    }
+
+    .style-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .style-btn.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+    }
+
+    #map { height: 420px; width: 100%; }
+
+    /* Contrôles animation */
+    .anim-controls {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .ctrl-btn {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ctrl-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .ctrl-btn.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+    .speed-btns { display: flex; gap: 4px; }
+
+    .progress-wrap {
+      flex: 1;
+      min-width: 120px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    #anim-progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--orange), var(--mint));
+      transition: width 0.1s;
+    }
+
+    .anim-time {
+      font-size: 0.8rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ══════════════════════════════════════
+       STATS PANEL
+    ══════════════════════════════════════ */
+    .stats-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .stats-card h3 {
+      padding: 14px 18px;
+      font-size: 1rem;
+      color: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .stat-item {
+      background: var(--card);
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-icon { font-size: 1.3rem; }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .stat-value span {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Poids input */
+    .weight-row {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .weight-row input {
+      width: 64px;
+      background: var(--navy);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 6px 8px;
+      font-size: 0.9rem;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .weight-row input:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    .recalc-btn {
+      background: var(--orange);
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ══════════════════════════════════════
+       PROFIL ALTIMÉTRIQUE
+    ══════════════════════════════════════ */
+    .chart-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+
+    .chart-card h3 {
+      font-size: 1rem;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    #elevation-chart { max-height: 160px; }
+
+    /* ══════════════════════════════════════
+       ANALYSE PHYSIOLOGIQUE
+    ══════════════════════════════════════ */
+    .physio-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .physio-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .physio-header h3 { font-size: 1.1rem; color: #fff; }
+
+    .zone-badge {
+      margin-left: auto;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .physio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .physio-item {
+      background: var(--card);
+      padding: 20px;
+    }
+
+    .physio-item-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .physio-emoji { font-size: 1.6rem; }
+
+    .physio-item h4 {
+      font-size: 0.9rem;
+      color: var(--mint);
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .physio-item p {
+      font-size: 0.88rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .physio-item .physio-highlight {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(0,212,170,0.1);
+      border: 1px solid rgba(0,212,170,0.2);
+      color: var(--mint);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    /* Zone bar */
+    .zone-bar-wrap { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .zone-bar-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+    .zone-bar { display: flex; gap: 3px; height: 10px; border-radius: 5px; overflow: hidden; }
+    .zone-seg { height: 100%; border-radius: 2px; transition: width 1s ease; }
+
+    /* ══════════════════════════════════════
+       PUB ADSENSE
+    ══════════════════════════════════════ */
+    .ad-slot {
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 24px;
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    footer {
+      background: var(--navy);
+      border-top: 1px solid var(--border);
+      padding: 20px 32px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer a { color: var(--orange); text-decoration: none; }
+
+    /* ══════════════════════════════════════
+       NOUVELLE ANALYSE BTN
+    ══════════════════════════════════════ */
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+
+    .reset-btn:hover { border-color: var(--orange); color: var(--orange); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     HEADER
+═══════════════════════════════════ -->
+<header>
+  <div class="logo-icon">🚴</div>
+  <div>
+    <h1>GPX <span>Replay</span> 3D</h1>
+    <div class="header-sub">Visualise & analyse ta séance en 3D</div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════
+     MAIN
+═══════════════════════════════════ -->
+<main>
+
+  <!-- UPLOAD -->
+  <section id="upload-section">
+    <div id="drop-zone">
+      <div class="upload-icon">📁</div>
+      <h2>Dépose ton fichier GPX ici</h2>
+      <p>Activité vélo, course à pied, randonnée, ski — tout format GPX accepté</p>
+      <button class="btn-upload" onclick="document.getElementById('file-input').click()">
+        Choisir un fichier GPX
+      </button>
+      <input type="file" id="file-input" accept=".gpx"/>
+      <p class="supported">✅ Strava · Garmin · Wahoo · Komoot · OSMAnd · GPSies</p>
+    </div>
+    <div id="error-msg">❌ <span id="error-text"></span></div>
+  </section>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <p style="color:var(--muted)">Analyse de ta séance en cours…</p>
+  </div>
+
+  <!-- RÉSULTATS -->
+  <div id="results">
+
+    <button class="reset-btn" onclick="resetApp()">← Analyser une autre séance</button>
+
+    <!-- CARTE + STATS -->
+    <div class="results-grid">
+
+      <!-- CARTE 3D -->
+      <div class="map-card">
+        <div class="map-header">
+          <h3>🗺️ Replay 3D</h3>
+          <div class="map-style-toggle">
+            <button class="style-btn active" onclick="setStyle('topo',this)">Topo</button>
+            <button class="style-btn" onclick="setStyle('satellite',this)">Satellite</button>
+          </div>
+        </div>
+        <div id="map"></div>
+        <div class="anim-controls">
+          <button class="ctrl-btn" id="play-btn" onclick="togglePlay()">▶ Play</button>
+          <button class="ctrl-btn" onclick="resetAnim()">🔄</button>
+          <div class="speed-btns">
+            <button class="ctrl-btn speed-btn active" onclick="setSpeed(1,this)">x1</button>
+            <button class="ctrl-btn speed-btn" onclick="setSpeed(3,this)">x3</button>
+            <button class="ctrl-btn speed-btn" onclick="setSpeed(8,this)">x8</button>
+          </div>
+          <div class="progress-wrap">
+            <div id="anim-progress"></div>
+          </div>
+          <div class="anim-time" id="anim-time">0%</div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-card">
+        <h3>📊 Résumé de séance</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-icon">📏</div>
+            <div class="stat-label">Distance</div>
+            <div class="stat-value" id="s-dist">—<span> km</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-label">Durée</div>
+            <div class="stat-value" id="s-dur">—</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">⬆️</div>
+            <div class="stat-label">Dénivelé +</div>
+            <div class="stat-value" id="s-elev">—<span> m</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">⬇️</div>
+            <div class="stat-label">Dénivelé -</div>
+            <div class="stat-value" id="s-desc">—<span> m</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">💨</div>
+            <div class="stat-label">Vitesse moy.</div>
+            <div class="stat-value" id="s-avgspd">—<span> km/h</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">🚀</div>
+            <div class="stat-label">Vitesse max</div>
+            <div class="stat-value" id="s-maxspd">—<span> km/h</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">🏔️</div>
+            <div class="stat-label">Altitude max</div>
+            <div class="stat-value" id="s-altmax">—<span> m</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-label">Calories est.</div>
+            <div class="stat-value" id="s-kcal">—<span> kcal</span></div>
+          </div>
+        </div>
+        <div class="weight-row">
+          ⚖️ Ton poids :
+          <input type="number" id="weight-input" value="75" min="40" max="150"/>
+          kg
+          <button class="recalc-btn" onclick="recalcCalories()">Recalculer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFIL ALTIMÉTRIQUE -->
+    <div class="chart-card">
+      <h3>📈 Profil altimétrique</h3>
+      <canvas id="elevation-chart"></canvas>
+    </div>
+
+    <!-- PUB 1 -->
+    <div class="ad-slot">
+      <!-- Remplace ce bloc par ton code Google AdSense -->
+      📢 Espace publicitaire — Google AdSense
+    </div>
+
+    <!-- ANALYSE PHYSIOLOGIQUE -->
+    <div class="physio-card">
+      <div class="physio-header">
+        <span style="font-size:1.4rem">🫀</span>
+        <h3>Analyse physiologique</h3>
+        <div class="zone-badge" id="zone-badge">—</div>
+      </div>
+      <div class="physio-grid" id="physio-grid">
+        <!-- généré par JS -->
+      </div>
+      <div class="zone-bar-wrap">
+        <div class="zone-bar-label">Répartition estimée des zones d'effort</div>
+        <div class="zone-bar" id="zone-bar"></div>
+      </div>
+    </div>
+
+    <!-- PUB 2 -->
+    <div class="ad-slot">
+      📢 Espace publicitaire — Google AdSense
+    </div>
+
+  </div><!-- /results -->
+
+</main>
+
+<!-- ═══════════════════════════════════
+     FOOTER
+═══════════════════════════════════ -->
+<footer>
+  <p>GPX Replay 3D — Outil gratuit d'analyse d'activité sportive &nbsp;|&nbsp;
+  <a href="#">Confidentialité</a> — Aucune donnée stockée, tout est traité localement dans ton navigateur.</p>
+</footer>
+
+
+<!-- ═══════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════ -->
+<script>
+/* ══════════════════════════════════════
+   CONFIG
+══════════════════════════════════════ */
+
+// ⚠️ Remplace par ta clé Mapbox gratuite sur https://account.mapbox.com
+mapboxgl.accessToken = 'pk.eyJ1IjoiZGVtb2tleWdweCIsImEiOiJjbHRlc3QxMjM0NTY3OGFiY2RlZiJ9.DEMO_KEY_REPLACE_ME';
+
+const STYLES = {
+  topo:      'mapbox://styles/mapbox/outdoors-v12',
+  satellite: 'mapbox://styles/mapbox/satellite-streets-v12'
+};
+
+/* ══════════════════════════════════════
+   ÉTAT GLOBAL
+══════════════════════════════════════ */
+let gpxData    = null; // points parsés [{lat,lng,ele,time}]
+let map        = null;
+let animFrame  = null;
+let animIdx    = 0;
+let animSpeed  = 1;
+let isPlaying  = false;
+let elevChart  = null;
+
+/* ══════════════════════════════════════
+   UPLOAD & DRAG DROP
+══════════════════════════════════════ */
+const dropZone  = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+/* ══════════════════════════════════════
+   LECTURE FICHIER GPX
+══════════════════════════════════════ */
+function handleFile(file) {
+  if (!file.name.toLowerCase().endsWith('.gpx')) {
+    showError('Le fichier doit être au format .gpx');
+    return;
+  }
+  hideError();
+  showLoader();
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const points = parseGPX(e.target.result);
+      if (points.length < 2) throw new Error('Fichier GPX vide ou invalide');
+      gpxData = points;
+      setTimeout(() => {
+        hideLoader();
+        processActivity();
+      }, 600);
+    } catch(err) {
+      hideLoader();
+      showError('Impossible de lire ce fichier GPX : ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ══════════════════════════════════════
+   PARSER GPX (natif, sans librairie)
+══════════════════════════════════════ */
+function parseGPX(xmlStr) {
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(xmlStr, 'application/xml');
+
+  // Cherche trkpt ou wpt
+  const trkpts = doc.querySelectorAll('trkpt, wpt');
+  if (!trkpts.length) throw new Error('Aucun point de trace trouvé');
+
+  const points = [];
+  trkpts.forEach(pt => {
+    const lat  = parseFloat(pt.getAttribute('lat'));
+    const lng  = parseFloat(pt.getAttribute('lon'));
+    const eleEl = pt.querySelector('ele');
+    const timeEl = pt.querySelector('time');
+    const ele  = eleEl  ? parseFloat(eleEl.textContent)  : 0;
+    const time = timeEl ? new Date(timeEl.textContent).getTime() : null;
+    if (!isNaN(lat) && !isNaN(lng)) points.push({ lat, lng, ele, time });
+  });
+  return points;
+}
+
+/* ══════════════════════════════════════
+   CALCUL DES STATS
+══════════════════════════════════════ */
+function computeStats(pts) {
+  let dist = 0, elevGain = 0, elevLoss = 0;
+  let maxSpd = 0;
+  let altMax = -Infinity, altMin = Infinity;
+  const speeds = [];
+
+  for (let i = 1; i < pts.length; i++) {
+    const d = haversine(pts[i-1], pts[i]);
+    dist += d;
+
+    const dEle = pts[i].ele - pts[i-1].ele;
+    if (dEle > 0) elevGain += dEle;
+    else elevLoss += Math.abs(dEle);
+
+    if (pts[i].ele > altMax) altMax = pts[i].ele;
+    if (pts[i].ele < altMin) altMin = pts[i].ele;
+
+    if (pts[i].time && pts[i-1].time) {
+      const dt = (pts[i].time - pts[i-1].time) / 3600000; // heures
+      if (dt > 0) {
+        const spd = (d / 1000) / dt;
+        if (spd < 120) { speeds.push(spd); if (spd > maxSpd) maxSpd = spd; }
+      }
+    }
   }
 
-  const physio = gpxData ? analyzePhysiology(gpxData) : null
+  const durMs = (pts[pts.length-1].time && pts[0].time)
+    ? pts[pts.length-1].time - pts[0].time : null;
 
-  return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+  const avgSpd = speeds.length ? speeds.reduce((a,b)=>a+b,0)/speeds.length : 0;
+  const weight = parseInt(document.getElementById('weight-input').value) || 75;
+  const kcal   = calcKcal(dist/1000, elevGain, durMs, weight);
 
-      {/* ───── HERO ───── */}
-      <section className="max-w-3xl mx-auto px-6 py-20 text-center">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-5xl font-bold mb-4"
-        >
-          🚴 GPX <span className="text-orange-500">Replay</span> 3D
-        </motion.h1>
-        <p className="text-zinc-400 text-xl mb-12">
-          Revivez votre séance en 3D et découvrez ce qu'elle a apporté à votre corps
-        </p>
-        <UploadZone onDataReady={handleDataReady} />
-      </section>
-
-      {/* ───── RÉSULTATS ───── */}
-      <AnimatePresence>
-        {gpxData && physio && (
-          <motion.section
-            id="results"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-6xl mx-auto px-6 pb-20 space-y-12"
-          >
-            {/* Carte 3D */}
-            <Map3D data={gpxData} />
-
-            {/* Résumé */}
-            <SessionSummary data={gpxData} />
-
-            {/* Analyse physio */}
-            <PhysioAnalysis result={physio} />
-
-            {/* Bouton reset */}
-            <div className="text-center">
-              <button
-                onClick={() => setGpxData(null)}
-                className="px-6 py-3 border border-zinc-600 text-zinc-400
-                  rounded-full hover:border-orange-500 hover:text-orange-400
-                  transition-all duration-200"
-              >
-                ↑ Analyser une autre séance
-              </button>
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
-    </main>
-  )
+  return {
+    dist:     (dist/1000).toFixed(2),
+    elevGain: Math.round(elevGain),
+    elevLoss: Math.round(elevLoss),
+    altMax:   Math.round(altMax),
+    altMin:   Math.round(altMin),
+    avgSpd:   avgSpd.toFixed(1),
+    maxSpd:   maxSpd.toFixed(1),
+    durMs,
+    kcal:     Math.round(kcal)
+  };
 }
+
+function haversine(a, b) {
+  const R = 6371000;
+  const dLat = (b.lat - a.lat) * Math.PI/180;
+  const dLng = (b.lng - a.lng) * Math.PI/180;
+  const sin2 = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(sin2), Math.sqrt(1-sin2));
+}
+
+function calcKcal(distKm, elevGain, durMs, weight) {
+  return (weight * distKm * 0.9) + (elevGain * 10) + (durMs ? (durMs/3600000)*80 : 0);
+}
+
+function formatDuration(ms) {
+  if (!ms) return '—';
+  const h = Math.floor(ms/3600000);
+  const m = Math.floor((ms%3600000)/60000);
+  const s = Math.floor((ms%60000)/1000);
+  return h > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${m}m${String(s).padStart(2,'0')}`;
+}
+
+/* ══════════════════════════════════════
+   ANALYSE PHYSIOLOGIQUE
+══════════════════════════════════════ */
+function computePhysio(stats) {
+  const dist   = parseFloat(stats.dist);
+  const elev   = stats.elevGain;
+  const dur    = stats.durMs ? stats.durMs/3600000 : dist/20;
+  const avgSpd = parseFloat(stats.avgSpd);
+  const dplus  = elev / (dist || 1); // m/km
+
+  // Détection de la zone dominante
+  let zone, zoneColor, zoneBg;
+  if      (avgSpd < 15 || (dplus > 30 && avgSpd < 20)) { zone=2; }
+  else if (avgSpd < 22 && dplus < 20)                   { zone=2; }
+  else if (avgSpd < 27)                                  { zone=3; }
+  else if (avgSpd < 33)                                  { zone=4; }
+  else                                                   { zone=5; }
+
+  const zoneInfo = {
+    2: { name:'Z2 — Endurance de base', color:'#00D4AA', bg:'rgba(0,212,170,0.15)' },
+    3: { name:'Z3 — Tempo',             color:'#FFD166', bg:'rgba(255,209,102,0.15)' },
+    4: { name:'Z4 — Seuil lactique',    color:'#FF9A3C', bg:'rgba(255,154,60,0.15)' },
+    5: { name:'Z5 — VO2max',            color:'#FF6B6B', bg:'rgba(255,107,107,0.15)' },
+  }[zone];
+
+  // Carburant dominant
+  const lipides = zone <= 2 ? '~70%' : zone === 3 ? '~50%' : '~30%';
+  const glucides = zone <= 2 ? '~30%' : zone === 3 ? '~50%' : '~70%';
+
+  // Muscles ciblés selon dénivelé
+  const muscles = elev > 800
+    ? 'Quadriceps, fessiers et mollets fortement sollicités sur les ascensions répétées.'
+    : elev > 300
+    ? 'Quadriceps et mollets ont travaillé en endurance sur le dénivelé modéré.'
+    : 'Travail principalement en puissance sur le plat — ischio-jambiers et mollets.';
+
+  // Récupération
+  const recup = zone >= 4 ? '48 à 72h' : zone === 3 ? '24 à 48h' : '12 à 24h';
+
+  // Adapatation cardiaque
+  const cardio = zone <= 2
+    ? 'Entraînement en aérobie pur. Ton cœur s\'est renforcé sur la durée, améliorant son volume d\'éjection systolique.'
+    : zone === 3
+    ? 'Travail au seuil aérobie. Ton cœur a été maintenu à une intensité soutenue, développant ta puissance cardiaque.'
+    : 'Effort intense proche du seuil lactique. Ton système cardiovasculaire a été fortement stimulé, favorisant les adaptations VO2max.';
+
+  // Hormones
+  const hormones = zone <= 3
+    ? 'Libération d\'endorphines et de sérotonine. Effet anti-stress, amélioration de l\'humeur et du sommeil.'
+    : 'Pic d\'adrénaline et cortisol pendant l\'effort. Forte libération d\'endorphines post-séance — effet euphorisant garanti.';
+
+  return { zone, zoneInfo, lipides, glucides, muscles, recup, cardio, hormones, dplus, dur };
+}
+
+function renderPhysio(physio, stats) {
+  const grid = document.getElementById('physio-grid');
+
+  const badge = document.getElementById('zone-badge');
+  badge.textContent = physio.zoneInfo.name;
+  badge.style.background = physio.zoneInfo.bg;
+  badge.style.color = physio.zoneInfo.color;
+  badge.style.border = `1px solid ${physio.zoneInfo.color}44`;
+
+  const items = [
+    {
+      emoji: '🫀', title: 'Système cardiovasculaire',
+      text: physio.cardio,
+      highlight: `Zone ${physio.zone} dominante`
+    },
+    {
+      emoji: '🔥', title: 'Calories & carburant',
+      text: `Tu as brûlé environ ${stats.kcal} kcal. Ton corps a utilisé : Lipides ${physio.lipides} · Glucides ${physio.glucides}.`,
+      highlight: `${stats.kcal} kcal dépensées`
+    },
+    {
+      emoji: '💪', title: 'Muscles sollicités',
+      text: physio.muscles + ' Des micro-lésions musculaires normales favorisent ton adaptation et ta progression.',
+      highlight: physio.dplus > 20 ? 'Fort travail musculaire en côte' : 'Endurance musculaire'
+    },
+    {
+      emoji: '🧠', title: 'Hormones & mental',
+      text: physio.hormones,
+      highlight: 'Effet bien-être garanti'
+    },
+    {
+      emoji: '😴', title: 'Récupération recommandée',
+      text: `Laisse-toi ${physio.recup} avant le prochain effort intense. Hydratation, protéines dans les 30min post-séance, sommeil prioritaire.`,
+      highlight: `Repos : ${physio.recup}`
+    },
+    {
+      emoji: '📈', title: 'Bénéfice long terme',
+      text: physio.zone <= 2
+        ? 'Cette séance développe ton endurance de base — le socle de toute performance. Avec régularité, tu amélioreras ton seuil aérobie et ta capacité à oxyder les graisses.'
+        : physio.zone === 3
+        ? 'Travail au tempo qui repousse ton seuil lactique. En 4 à 6 semaines de séances similaires, tu seras plus rapide sur la même distance.'
+        : 'Effort intense qui stimule ta VO2max et ta puissance maximale. Résultats visibles en 3 à 5 semaines.',
+      highlight: physio.zone <= 2 ? 'Base aérobie renforcée' : physio.zone === 3 ? 'Seuil lactique repoussé' : 'VO2max stimulée'
+    }
+  ];
+
+  grid.innerHTML = items.map(item => `
+    <div class="physio-item">
+      <div class="physio-item-header">
+        <div class="physio-emoji">${item.emoji}</div>
+        <h4>${item.title}</h4>
+      </div>
+      <p>${item.text}</p>
+      <span class="physio-highlight">${item.highlight}</span>
+    </div>
+  `).join('');
+
+  // Zone bar
+  const zones    = [
+    { z:1, color:'#4FC3F7', pct: physio.zone===1?60:10 },
+    { z:2, color:'#00D4AA', pct: physio.zone===2?60:physio.zone===1?20:10 },
+    { z:3, color:'#FFD166', pct: physio.zone===3?50:10 },
+    { z:4, color:'#FF9A3C', pct: physio.zone===4?50:5 },
+    { z:5, color:'#FF6B6B', pct: physio.zone===5?50:5 },
+  ];
+  const total = zones.reduce((a,b)=>a+b.pct,0);
+  document.getElementById('zone-bar').innerHTML = zones.map(z =>
+    `<div class="zone-seg" title="Zone ${z.z}" style="width:${(z.pct/total*100).toFixed(1)}%;background:${z.color}"></div>`
+  ).join('');
+}
+
+/* ══════════════════════════════════════
+   GRAPHIQUE ALTIMÉTRIQUE
+══════════════════════════════════════ */
+function renderElevationChart(pts) {
+  const step   = Math.max(1, Math.floor(pts.length / 200));
+  const labels = [], data = [];
+  let cumDist  = 0;
+
+  for (let i = 0; i < pts.length; i += step) {
+    if (i > 0) cumDist += haversine(pts[i-step] || pts[i-1], pts[i]) / 1000;
+    labels.push(cumDist.toFixed(1));
+    data.push(Math.round(pts[i].ele));
+  }
+
+  if (elevChart) elevChart.destroy();
+
+  const ctx = document.getElementById('elevation-chart').getContext('2d');
+  elevChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#FF6B35',
+        backgroundColor: 'rgba(255,107,53,0.15)',
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: {
+          title: ctx => `${ctx[0].label} km`,
+          label:  ctx => `${ctx.raw} m`
+        }
+      }},
+      scales: {
+        x: { ticks: { color:'#8888AA', maxTicksLimit:8, callback: v => labels[v]+' km' }, grid: { color:'#2A2A4A' } },
+        y: { ticks: { color:'#8888AA' }, grid: { color:'#2A2A4A' } }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════
+   CARTE MAPBOX
+══════════════════════════════════════ */
+function initMap(pts) {
+  if (map) { map.remove(); map = null; }
+
+  const coords = pts.map(p => [p.lng, p.lat]);
+  const center = coords[Math.floor(coords.length/2)];
+
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: STYLES.topo,
+    center,
+    zoom: 11,
+    pitch: 60,
+    bearing: -20,
+    antialias: true
+  });
+
+  map.on('load', () => {
+    // Relief 3D
+    map.addSource('mapbox-dem', {
+      type: 'raster-dem',
+      url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      tileSize: 512
+    });
+    map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.8 });
+
+    // Trace complète (grisée)
+    map.addSource('full-trace', {
+      type: 'geojson',
+      data: { type:'Feature', geometry:{ type:'LineString', coordinates: coords }}
+    });
+    map.addLayer({
+      id: 'full-trace',
+      type: 'line',
+      source: 'full-trace',
+      paint: { 'line-color':'#ffffff', 'line-opacity':0.15, 'line-width':3 }
+    });
+
+    // Trace animée
+    map.addSource('anim-trace', {
+      type: 'geojson',
+      data: { type:'Feature', geometry:{ type:'LineString', coordinates:[] }}
+    });
+    map.addLayer({
+      id: 'anim-trace',
+      type: 'line',
+      source: 'anim-trace',
+      paint: {
+        'line-color': '#FF6B35',
+        'line-width': 4,
+        'line-gradient': ['interpolate',['linear'],['line-progress'],0,'#FF6B35',1,'#00D4AA']
+      },
+      layout: { 'line-cap':'round', 'line-join':'round' }
+    });
+
+    // Marqueur de position
+    const markerEl = document.createElement('div');
+    markerEl.innerHTML = '🚴';
+    markerEl.style.cssText = 'font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));';
+    window._marker = new mapboxgl.Marker({ element: markerEl }).setLngLat(coords[0]).addTo(map);
+
+    // Marqueurs départ / arrivée
+    new mapboxgl.Marker({ color:'#00D4AA' }).setLngLat(coords[0]).addTo(map);
+    new mapboxgl.Marker({ color:'#FF6B35' }).setLngLat(coords[coords.length-1]).addTo(map);
+
+    // Fit bounds
+    const lngs = coords.map(c=>c[0]), lats = coords.map(c=>c[1]);
+    map.fitBounds([[Math.min(...lngs),Math.min(...lats)],[Math.max(...lngs),Math.max(...lats)]], { padding:60, duration:1000 });
+  });
+}
+
+/* ══════════════════════════════════════
+   ANIMATION
+══════════════════════════════════════ */
+function togglePlay() {
+  isPlaying ? pauseAnim() : startAnim();
+}
+
+function startAnim() {
+  isPlaying = true;
+  document.getElementById('play-btn').textContent = '⏸ Pause';
+  document.getElementById('play-btn').classList.add('active');
+  animStep();
+}
+
+function pauseAnim() {
+  isPlaying = false;
+  document.getElementById('play-btn').textContent = '▶ Play';
+  document.getElementById('play-btn').classList.remove('active');
+  if (animFrame) cancelAnimationFrame(animFrame);
+}
+
+function resetAnim() {
+  pauseAnim();
+  animIdx = 0;
+  updateAnimTrace([]);
+  document.getElementById('anim-progress').style.width = '0%';
+  document.getElementById('anim-time').textContent = '0%';
+}
+
+function animStep() {
+  if (!isPlaying || !gpxData) return;
+  const coords = gpxData.map(p => [p.lng, p.lat]);
+  const step   = Math.max(1, Math.floor(animSpeed * 2));
+  animIdx      = Math.min(animIdx + step, coords.length - 1);
+
+  const slice = coords.slice(0, animIdx + 1);
+  updateAnimTrace(slice);
+
+  // Déplace marqueur
+  if (window._marker) window._marker.setLngLat(coords[animIdx]);
+
+  // Progress
+  const pct = ((animIdx / (coords.length-1)) * 100).toFixed(0);
+  document.getElementById('anim-progress').style.width = pct + '%';
+  document.getElementById('anim-time').textContent = pct + '%';
+
+  if (animIdx < coords.length - 1) {
+    animFrame = requestAnimationFrame(animStep);
+  } else {
+    pauseAnim();
+    document.getElementById('play-btn').textContent = '✅ Terminé';
+  }
+}
+
+function updateAnimTrace(coords) {
+  if (!map || !map.getSource('anim-trace')) return;
+  map.getSource('anim-trace').setData({
+    type:'Feature',
+    geometry: { type:'LineString', coordinates: coords }
+  });
+}
+
+function setSpeed(spd, btn) {
+  animSpeed = spd;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setStyle(styleKey, btn) {
+  if (!map) return;
+  map.setStyle(STYLES[styleKey]);
+  map.once('style.load', () => {
+    // Re-ajouter les sources/layers après changement de style
+    initMap(gpxData);
+  });
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ══════════════════════════════════════
+   PROCESS PRINCIPAL
+══════════════════════════════════════ */
+function processActivity() {
+  const pts   = gpxData;
+  const stats = computeStats(pts);
+  const physio = computePhysio(stats);
+
+  // Stats UI
+  document.getElementById('s-dist').innerHTML    = `${stats.dist}<span> km</span>`;
+  document.getElementById('s-dur').textContent   = formatDuration(stats.durMs);
+  document.getElementById('s-elev').innerHTML    = `${stats.elevGain}<span> m</span>`;
+  document.getElementById('s-desc').innerHTML    = `${stats.elevLoss}<span> m</span>`;
+  document.getElementById('s-avgspd').innerHTML  = `${stats.avgSpd}<span> km/h</span>`;
+  document.getElementById('s-maxspd').innerHTML  = `${stats.maxSpd}<span> km/h</span>`;
+  document.getElementById('s-altmax').innerHTML  = `${stats.altMax}<span> m</span>`;
+  document.getElementById('s-kcal').innerHTML    = `${stats.kcal}<span> kcal</span>`;
+
+  renderElevationChart(pts);
+  renderPhysio(physio, stats);
+  initMap(pts);
+
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior:'smooth' });
+}
+
+/* ══════════════════════════════════════
+   RECALCUL CALORIES
+══════════════════════════════════════ */
+function recalcCalories() {
+  if (!gpxData) return;
+  const stats = computeStats(gpxData);
+  document.getElementById('s-kcal').innerHTML = `${stats.kcal}<span> kcal</span>`;
+  const physio = computePhysio(stats);
+  renderPhysio(physio, stats);
+}
+
+/* ══════════════════════════════════════
+   RESET
+══════════════════════════════════════ */
+function resetApp() {
+  gpxData = null;
+  pauseAnim();
+  animIdx = 0;
+  if (map) { map.remove(); map = null; }
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('file-input').value = '';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ══════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════ */
+function showLoader()  {
+  document.getElementById('loader').style.display = 'block';
+  document.getElementById('drop-zone').style.display = 'none';
+}
+function hideLoader()  {
+  document.getElementById('loader').style.display = 'none';
+}
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  document.getElementById('error-text').textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('drop-zone').style.display = 'block';
+}
+function hideError() {
+  document.getElementById('error-msg').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
